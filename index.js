@@ -1,6 +1,7 @@
 const { copyFile, readFile, appendFile } = require("fs").promises;
 const { resolve } = require("path");
 const { processFileHash } = require("./src/commands/processFileHash");
+const { processText } = require("./src/commands/processText");
 const { fileExists } = require("./src/helper/fileExists");
 const { getFileDigest, getTextDigest } = require("./src/helper/digest");
 
@@ -32,7 +33,7 @@ const algorithm = "sha256";
 			process.exit(1);
 		}
 
-		processText(text);
+		processText(text, algorithm);
 	} else if (argv.includes(appendFlag)) {
 		const filename = argv[argv.indexOf(appendFlag) + 1];
 
@@ -68,12 +69,6 @@ const algorithm = "sha256";
 		showHelp();
 	}
 })();
-
-function processText(text) {
-	const digest = getTextDigest(text, algorithm);
-
-	console.log(digest);
-}
 
 async function appendFileHash(filename) {
 	const filePath = resolve(process.cwd(), filename);
