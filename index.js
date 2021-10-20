@@ -1,8 +1,8 @@
 const { createHash } = require("crypto");
-const { createReadStream } = require("fs");
-const { stat, copyFile, readFile, appendFile } = require("fs").promises;
+const { copyFile, readFile, appendFile } = require("fs").promises;
 const { resolve } = require("path");
 const { fileExists } = require("./src/helper/fileExists");
+const { getFileDigest } = require("./src/helper/digest");
 
 const fileFlag = "-f";
 const textFlag = "-t";
@@ -141,27 +141,6 @@ function showHelp() {
 	console.log(usage.map((v, i) => (i > 0 ? `  ${v}` : v)).join("\n"));
 	console.log("\nParameters:\n");
 	console.log(params.join("\n"));
-}
-
-async function getFileDigest(filePath, algorithm) {
-	return new Promise(async (res, rej) => {
-		if (!(await fileExists(filePath))) {
-			rej(`File ${filePath} does not exist`);
-			return;
-		}
-
-		const hash = createHash(algorithm);
-		const stream = createReadStream(filePath);
-
-		stream.on("data", data => {
-			hash.update(data);
-		});
-
-		stream.on("end", () => {
-			const fileHash = hash.digest("hex");
-			res(fileHash.toLowerCase());
-		});
-	});
 }
 
 function getTextDigest(text, algorithm) {
