@@ -2,6 +2,7 @@ const { createHash } = require("crypto");
 const { createReadStream } = require("fs");
 const { stat, copyFile, readFile, appendFile } = require("fs").promises;
 const { resolve } = require("path");
+const { fileExists } = require("./src/helper/fileExists");
 
 const fileFlag = "-f";
 const textFlag = "-t";
@@ -140,16 +141,6 @@ function showHelp() {
 	console.log(usage.map((v, i) => (i > 0 ? `  ${v}` : v)).join("\n"));
 	console.log("\nParameters:\n");
 	console.log(params.join("\n"));
-}
-
-async function fileExists(filePath) {
-	try {
-		await stat(filePath);
-	} catch (e) {
-		return false;
-	}
-
-	return true;
 }
 
 async function getFileDigest(filePath, algorithm) {
