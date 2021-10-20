@@ -23,4 +23,12 @@ async function getFileDigest(filePath, algorithm) {
 	});
 }
 
-module.exports = { getFileDigest };
+function getTextDigest(text, algorithm) {
+	const hash = createHash(algorithm);
+
+	hash.update(text);
+
+	return hash.digest("hex").toLowerCase();
+}
+
+module.exports = { getFileDigest, getTextDigest };

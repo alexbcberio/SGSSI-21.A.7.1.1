@@ -1,9 +1,8 @@
-const { createHash } = require("crypto");
 const { copyFile, readFile, appendFile } = require("fs").promises;
 const { resolve } = require("path");
 const { processFileHash } = require("./src/commands/processFileHash");
 const { fileExists } = require("./src/helper/fileExists");
-const { getFileDigest } = require("./src/helper/digest");
+const { getFileDigest, getTextDigest } = require("./src/helper/digest");
 
 const fileFlag = "-f";
 const textFlag = "-t";
@@ -130,14 +129,6 @@ function showHelp() {
 	console.log(usage.map((v, i) => (i > 0 ? `  ${v}` : v)).join("\n"));
 	console.log("\nParameters:\n");
 	console.log(params.join("\n"));
-}
-
-function getTextDigest(text, algorithm) {
-	const hash = createHash(algorithm);
-
-	hash.update(text);
-
-	return hash.digest("hex").toLowerCase();
 }
 
 async function copyFileWithDigest(filePath, algorithm) {
