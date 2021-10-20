@@ -3,6 +3,7 @@ const { resolve } = require("path");
 const { processFileHash } = require("./src/commands/processFileHash");
 const { processText } = require("./src/commands/processText");
 const { appendFileHash } = require("./src/commands/appendFileHash");
+const { zeroesBlock } = require("./src/commands/zeroesBlock");
 const { fileExists } = require("./src/helper/fileExists");
 const { getTextDigest } = require("./src/helper/digest");
 
@@ -56,7 +57,7 @@ const algorithm = "sha256";
 			process.exit(1);
 		}
 
-		await zeroesBlock(filename, numZeroes);
+		await zeroesBlock(filename, algorithm, numZeroes);
 	} else if (argv.includes(mineFlag)) {
 		const filename = argv[argv.indexOf(mineFlag) + 1];
 
@@ -70,17 +71,6 @@ const algorithm = "sha256";
 		showHelp();
 	}
 })();
-
-async function zeroesBlock(filename, numZeroes) {
-	const filePath = resolve(process.cwd(), filename);
-
-	try {
-		await withZeroes(filePath, algorithm, numZeroes);
-	} catch (e) {
-		console.error(e);
-		process.exit(1);
-	}
-}
 
 async function mineBlock(filename) {
 	const filePath = resolve(process.cwd(), filename);
@@ -114,79 +104,6 @@ function showHelp() {
 	console.log(usage.map((v, i) => (i > 0 ? `  ${v}` : v)).join("\n"));
 	console.log("\nParameters:\n");
 	console.log(params.join("\n"));
-}
-
-async function withZeroes(filePath, algorithm, numZeroes) {
-	if (!(await fileExists(filePath))) {
-		throw `File ${filePath} does not exist`;
-	}
-
-	const minNumZeroes = 1;
-	if (numZeroes < minNumZeroes) {
-		throw `Num zeroes must be at least ${minNumZeroes}`;
-	}
-
-	const maxHexChars = 8;
-	const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
-
-	const readBuffer = await readFile(filePath);
-	const content = readBuffer.toString();
-
-	const hasEndNewLine = content.endsWith("\n") || content.endsWith("\r\n");
-
-	let appendNewLine = "";
-	if (!hasEndNewLine) {
-		appendNewLine = "\n";
-	}
-
-	const digestPrefix = "0".repeat(numZeroes);
-
-	let hexNum = -1;
-	let hexNumString;
-	let digest;
-
-	const startTimestamp = Date.now();
-	do {
-		hexNum++;
-		hexNumString = hexNum.toString(16).toLowerCase();
-
-		if (hexNumString.length < maxHexChars) {
-			hexNumString =
-				"0".repeat(maxHexChars - hexNumString.length) + hexNumString;
-		}
-
-		const contentWithHex = content + appendNewLine + hexNumString;
-
-		digest = await getTextDigest(contentWithHex, algorithm);
-
-		console.log(digest + " " + hexNumString);
-	} while (!digest.startsWith(digestPrefix) && hexNum < maxHexNumValue);
-
-	const msTimeTaken = Date.now() - startTimestamp;
-	console.log(
-		`\nFinish searching a digest with ${numZeroes} zeroes after ${msTimeTaken}ms.`
-	);
-
-	if (!digest.startsWith(digestPrefix)) {
-		throw `There could not be found any ${algorithm} digest with ${numZeroes} zeroes using ${maxHexChars} hex characters`;
-	}
-
-	console.log(`\nFound digest with at least ${numZeroes} zeroes:`);
-	console.log(`  Hex string: ${hexNumString}`);
-	console.log(`  Digest: ${digest}\n`);
-
-	const copyPath = filePath + "." + algorithm + "." + digestPrefix;
-	await copyFile(filePath, copyPath);
-
-	let appendHexNumString = "";
-	if (!hasEndNewLine) {
-		appendHexNumString = "\n";
-	}
-
-	appendHexNumString += hexNumString;
-	await appendFile(copyPath, appendHexNumString);
-
-	console.log(`Created file with appended hex code at ${copyPath}`);
 }
 
 async function searchZeroes(filePath, algorithm) {
