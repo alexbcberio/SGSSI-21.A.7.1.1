@@ -1,6 +1,7 @@
 const { createHash } = require("crypto");
 const { copyFile, readFile, appendFile } = require("fs").promises;
 const { resolve } = require("path");
+const { processFileHash } = require("./src/commands/processFileHash");
 const { fileExists } = require("./src/helper/fileExists");
 const { getFileDigest } = require("./src/helper/digest");
 
@@ -23,7 +24,7 @@ const algorithm = "sha256";
 			process.exit(1);
 		}
 
-		await processFileHash(filename);
+		await processFileHash(filename, algorithm);
 	} else if (argv.includes(textFlag)) {
 		const text = argv[argv.indexOf(textFlag) + 1];
 
@@ -68,18 +69,6 @@ const algorithm = "sha256";
 		showHelp();
 	}
 })();
-
-async function processFileHash(filename) {
-	const filePath = resolve(process.cwd(), filename);
-	try {
-		const digest = await getFileDigest(filePath, algorithm);
-
-		console.log(digest);
-	} catch (e) {
-		console.error(e);
-		process.exit(1);
-	}
-}
 
 function processText(text) {
 	const digest = getTextDigest(text, algorithm);
