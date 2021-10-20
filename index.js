@@ -2,8 +2,9 @@ const { copyFile, readFile, appendFile } = require("fs").promises;
 const { resolve } = require("path");
 const { processFileHash } = require("./src/commands/processFileHash");
 const { processText } = require("./src/commands/processText");
+const { appendFileHash } = require("./src/commands/appendFileHash");
 const { fileExists } = require("./src/helper/fileExists");
-const { getFileDigest, getTextDigest } = require("./src/helper/digest");
+const { getTextDigest } = require("./src/helper/digest");
 
 const fileFlag = "-f";
 const textFlag = "-t";
@@ -42,7 +43,7 @@ const algorithm = "sha256";
 			process.exit(1);
 		}
 
-		await appendFileHash(filename);
+		await appendFileHash(filename, algorithm);
 	} else if (argv.includes(zeroesFlag)) {
 		const filename = argv[argv.indexOf(zeroesFlag) + 1];
 		const numZeroes = argv[argv.indexOf(zeroesFlag) + 2];
@@ -69,17 +70,6 @@ const algorithm = "sha256";
 		showHelp();
 	}
 })();
-
-async function appendFileHash(filename) {
-	const filePath = resolve(process.cwd(), filename);
-
-	try {
-		await copyFileWithDigest(filePath, algorithm);
-	} catch (e) {
-		console.error(e);
-		process.exit(1);
-	}
-}
 
 async function zeroesBlock(filename, numZeroes) {
 	const filePath = resolve(process.cwd(), filename);
@@ -124,33 +114,6 @@ function showHelp() {
 	console.log(usage.map((v, i) => (i > 0 ? `  ${v}` : v)).join("\n"));
 	console.log("\nParameters:\n");
 	console.log(params.join("\n"));
-}
-
-async function copyFileWithDigest(filePath, algorithm) {
-	if (!(await fileExists(filePath))) {
-		rej(`File ${filePath} does not exist`);
-		return;
-	}
-
-	const copyPath = filePath + "." + algorithm;
-
-	const digest = await getFileDigest(filePath, algorithm);
-	await copyFile(filePath, copyPath);
-
-	const readBuffer = await readFile(copyPath);
-	const content = readBuffer.toString();
-
-	const hasEndNewLine = content.endsWith("\n") || content.endsWith("\r\n");
-
-	let appendDigest = "";
-	if (!hasEndNewLine) {
-		appendDigest = "\n";
-	}
-
-	appendDigest += digest;
-	await appendFile(copyPath, appendDigest);
-
-	console.log(`Created file with digest at: ${copyPath}`);
 }
 
 async function withZeroes(filePath, algorithm, numZeroes) {
