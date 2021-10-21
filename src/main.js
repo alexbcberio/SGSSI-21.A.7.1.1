@@ -3,12 +3,14 @@ const { processText } = require("./commands/processText");
 const { appendFileHash } = require("./commands/appendFileHash");
 const { zeroesBlock } = require("./commands/zeroesBlock");
 const { mineBlock } = require("./commands/mineBlock");
+const { validateBlock } = require("./commands/validateBlock");
 
 const fileFlag = "-f";
 const textFlag = "-t";
 const appendFlag = "-a";
 const zeroesFlag = "-z";
 const mineFlag = "-m";
+const verifyFlag = "-v";
 
 const algorithm = "sha256";
 
@@ -64,6 +66,19 @@ const algorithm = "sha256";
 		}
 
 		await mineBlock(filename, algorithm);
+	} else if (argv.includes(verifyFlag)) {
+		const originFilename = argv[argv.indexOf(verifyFlag) + 1];
+		const minedFilename = argv[argv.indexOf(verifyFlag) + 2];
+
+		if (!originFilename) {
+			console.error("Missing origin name");
+			process.exit(1);
+		} else if (!minedFilename) {
+			console.error("Missing mined file name");
+			process.exit(1);
+		}
+
+		await validateBlock(originFilename, minedFilename, algorithm);
 	} else {
 		showHelp();
 	}
@@ -76,7 +91,8 @@ function showHelp() {
 		`${textFlag} <text> |`,
 		`${appendFlag} <filepath> |`,
 		`${zeroesFlag} <block path> <num zeroes>`,
-		`${mineFlag} <block path>`
+		`${mineFlag} <block path>`,
+		`${verifyFlag} <origin block path> <mined block path>`
 	];
 
 	const params = [
@@ -84,7 +100,8 @@ function showHelp() {
 		`${textFlag}\tGets digest of a text.`,
 		`${appendFlag}\tCreates a copy of a file with its digest at the end.`,
 		`${zeroesFlag}\tSearches a block with a prefix of given number of zeroes.`,
-		`${mineFlag}\tMines a block getting a prefix with the maximum number of zeroes.`
+		`${mineFlag}\tMines a block getting a prefix with the maximum number of zeroes.`,
+		`${verifyFlag}\tVerifies that the mined block complies with the origin block format.`
 	];
 
 	console.log(usage.map((v, i) => (i > 0 ? `  ${v}` : v)).join("\n"));
