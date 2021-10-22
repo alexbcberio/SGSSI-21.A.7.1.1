@@ -1,31 +1,31 @@
 {
-	"name": "sgssi-21-a.7.1.1",
-	"version": "1.0.0",
-	"description": "Small utility software to mine and check blocks of SGSSI",
-	"bin": "build/main.js",
-	"main": "src/main.ts",
-	"license": "MIT",
-	"private": true,
-	"dependencies": {
-		"pkg": "^5.3.3"
-	},
-	"scripts": {
-		"build": "tsc",
-		"watch": "tsc -w",
-		"package": "tsc && pkg ./bin/main.js -c package.json"
-	},
-	"pkg": {
-		"outputPath": "dist"
-	},
-	"devDependencies": {
-		"@types/node": "^16.11.4",
-		"@typescript-eslint/eslint-plugin": "^5.1.0",
-		"@typescript-eslint/parser": "^5.1.0",
-		"eslint": "^8.1.0",
-		"eslint-config-prettier": "^8.3.0",
-		"eslint-plugin-prettier": "^4.0.0",
-		"prettier": "^2.4.1",
-		"ts-node": "^10.4.0",
-		"typescript": "^4.4.4"
-	}
+  "name": "sgssi-21-a.7.1.1",
+  "version": "1.0.0",
+  "description": "Small utility software to mine and check blocks of SGSSI",
+  "bin": "build/main.js",
+  "main": "src/main.ts",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "pkg": "^5.3.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "package": "tsc && pkg ./bin/main.js -c package.json"
+  },
+  "pkg": {
+    "outputPath": "dist"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.4",
+    "@typescript-eslint/eslint-plugin": "^5.1.0",
+    "@typescript-eslint/parser": "^5.1.0",
+    "eslint": "^8.1.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.4.1",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.4.4"
+  }
 }

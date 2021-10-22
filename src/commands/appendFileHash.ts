@@ -5,46 +5,46 @@ import { getFileDigest } from "../helper/digest";
 import { resolve } from "path";
 
 async function appendFileHash(
-	filename: string,
-	algorithm: string
+  filename: string,
+  algorithm: string
 ): Promise<void> {
-	const filePath = resolve(process.cwd(), filename);
+  const filePath = resolve(process.cwd(), filename);
 
-	try {
-		await copyFileWithDigest(filePath, algorithm);
-	} catch (e) {
-		console.error(e);
-		process.exit(1);
-	}
+  try {
+    await copyFileWithDigest(filePath, algorithm);
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
 }
 
 async function copyFileWithDigest(
-	filePath: string,
-	algorithm: string
+  filePath: string,
+  algorithm: string
 ): Promise<void> {
-	if (!(await fileExists(filePath))) {
-		throw `File ${filePath} does not exist`;
-	}
+  if (!(await fileExists(filePath))) {
+    throw `File ${filePath} does not exist`;
+  }
 
-	const copyPath = filePath + "." + algorithm;
+  const copyPath = `${filePath}.${algorithm}`;
 
-	const digest = await getFileDigest(filePath, algorithm);
-	await copyFile(filePath, copyPath);
+  const digest = await getFileDigest(filePath, algorithm);
+  await copyFile(filePath, copyPath);
 
-	const readBuffer = await readFile(copyPath);
-	const content = readBuffer.toString();
+  const readBuffer = await readFile(copyPath);
+  const content = readBuffer.toString();
 
-	const hasEndNewLine = content.endsWith("\n") || content.endsWith("\r\n");
+  const hasEndNewLine = content.endsWith("\n") || content.endsWith("\r\n");
 
-	let appendDigest = "";
-	if (!hasEndNewLine) {
-		appendDigest = "\n";
-	}
+  let appendDigest = "";
+  if (!hasEndNewLine) {
+    appendDigest = "\n";
+  }
 
-	appendDigest += digest;
-	await appendFile(copyPath, appendDigest);
+  appendDigest += digest;
+  await appendFile(copyPath, appendDigest);
 
-	console.log(`Created file with digest at: ${copyPath}`);
+  console.log(`Created file with digest at: ${copyPath}`);
 }
 
 export { appendFileHash };
