@@ -1,8 +1,12 @@
-const { readFile } = require("fs").promises;
-const { fileExists } = require("../helper/fileExists");
-const { getFileDigest } = require("../helper/digest");
+import { fileExists } from "../helper/fileExists";
+import { getFileDigest } from "../helper/digest";
+import { readFile } from "fs/promises";
 
-async function validateBlock(originFilePath, minedFilePath, algorithm) {
+async function validateBlock(
+	originFilePath: string,
+	minedFilePath: string,
+	algorithm: string
+): Promise<void> {
 	const exists = await Promise.all([
 		fileExists(originFilePath),
 		fileExists(minedFilePath)
@@ -22,7 +26,11 @@ async function validateBlock(originFilePath, minedFilePath, algorithm) {
 	}
 }
 
-async function checkRules(originFilePath, minedFilePath, algorithm) {
+async function checkRules(
+	originFilePath: string,
+	minedFilePath: string,
+	algorithm: string
+): Promise<void> {
 	const originReadBuffer = await readFile(originFilePath);
 	const originContent = originReadBuffer.toString();
 
@@ -37,8 +45,12 @@ async function checkRules(originFilePath, minedFilePath, algorithm) {
 	const lines = minedContent.replace(/\\r\\n/g, "\n").split("\n");
 	const lastLine = lines.pop();
 
+	if (!lastLine) {
+		throw "The mined file is missing the signature line.";
+	}
+
 	if (lines.length > 0) {
-		throw "Demasiadas lineas extra";
+		throw "The mined file contains extra lines.";
 	}
 
 	const regexp = new RegExp("^([0-9a-f]){8}[ ]G([0-3][0-9]){1,4}$");
@@ -52,4 +64,4 @@ async function checkRules(originFilePath, minedFilePath, algorithm) {
 	}
 }
 
-module.exports = { validateBlock };
+export { validateBlock };

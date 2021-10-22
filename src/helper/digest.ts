@@ -1,8 +1,11 @@
-const { createHash } = require("crypto");
-const { createReadStream } = require("fs");
-const { fileExists } = require("../helper/fileExists");
+import { createHash } from "crypto";
+import { createReadStream } from "fs";
+import { fileExists } from "./fileExists";
 
-async function getFileDigest(filePath, algorithm) {
+async function getFileDigest(
+	filePath: string,
+	algorithm: string
+): Promise<string> {
 	return new Promise(async (res, rej) => {
 		if (!(await fileExists(filePath))) {
 			rej(`File ${filePath} does not exist`);
@@ -23,7 +26,7 @@ async function getFileDigest(filePath, algorithm) {
 	});
 }
 
-function getTextDigest(text, algorithm) {
+function getTextDigest(text: string, algorithm: string): string {
 	const hash = createHash(algorithm);
 
 	hash.update(text);
@@ -31,4 +34,4 @@ function getTextDigest(text, algorithm) {
 	return hash.digest("hex").toLowerCase();
 }
 
-module.exports = { getFileDigest, getTextDigest };
+export { getFileDigest, getTextDigest };

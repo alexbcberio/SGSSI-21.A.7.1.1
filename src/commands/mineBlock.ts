@@ -1,29 +1,29 @@
-const { copyFile, readFile, appendFile } = require("fs").promises;
-const { resolve } = require("path");
-const { fileExists } = require("../helper/fileExists");
-const { getTextDigest } = require("../helper/digest");
+import { appendFile, copyFile, readFile } from "fs/promises";
 
-async function zeroesBlock(filename, algorithm, numZeroes) {
+import { fileExists } from "../helper/fileExists";
+import { getTextDigest } from "../helper/digest";
+import { resolve } from "path";
+
+async function mineBlock(filename: string, algorithm: string): Promise<void> {
 	const filePath = resolve(process.cwd(), filename);
 
 	try {
-		await withZeroes(filePath, algorithm, numZeroes);
+		await searchZeroes(filePath, algorithm);
 	} catch (e) {
 		console.error(e);
 		process.exit(1);
 	}
 }
 
-async function withZeroes(filePath, algorithm, numZeroes) {
+async function searchZeroes(
+	filePath: string,
+	algorithm: string
+): Promise<void> {
 	if (!(await fileExists(filePath))) {
 		throw `File ${filePath} does not exist`;
 	}
 
-	const minNumZeroes = 1;
-	if (numZeroes < minNumZeroes) {
-		throw `Num zeroes must be at least ${minNumZeroes}`;
-	}
-
+	const maxSeconds = 60;
 	const maxHexChars = 8;
 	const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
 
@@ -37,11 +37,13 @@ async function withZeroes(filePath, algorithm, numZeroes) {
 		appendNewLine = "\n";
 	}
 
-	const digestPrefix = "0".repeat(numZeroes);
-
 	let hexNum = -1;
 	let hexNumString;
 	let digest;
+
+	let optimalDigest;
+	let optimalDigestZeroes = 0;
+	let optimalString;
 
 	const startTimestamp = Date.now();
 	do {
@@ -52,28 +54,37 @@ async function withZeroes(filePath, algorithm, numZeroes) {
 			hexNumString =
 				"0".repeat(maxHexChars - hexNumString.length) + hexNumString;
 		}
+		hexNumString += " G040612";
 
 		const contentWithHex = content + appendNewLine + hexNumString;
 
 		digest = await getTextDigest(contentWithHex, algorithm);
 
 		console.log(digest + " " + hexNumString);
-	} while (!digest.startsWith(digestPrefix) && hexNum < maxHexNumValue);
 
-	const msTimeTaken = Date.now() - startTimestamp;
-	console.log(
-		`\nFinish searching a digest with ${numZeroes} zeroes after ${msTimeTaken}ms.`
+		if (digest.startsWith("0".repeat(optimalDigestZeroes + 1))) {
+			let numZeroes = 0;
+			for (let i = optimalDigestZeroes + 1; i < digest.length; i++) {
+				if (digest.startsWith("0".repeat(i))) {
+					numZeroes = i;
+				}
+			}
+
+			if (numZeroes > optimalDigestZeroes) {
+				optimalDigest = digest;
+				optimalDigestZeroes = numZeroes;
+				optimalString = hexNumString;
+			}
+		}
+	} while (
+		Date.now() - startTimestamp <= 1000 * maxSeconds &&
+		hexNum < maxHexNumValue
 	);
 
-	if (!digest.startsWith(digestPrefix)) {
-		throw `There could not be found any ${algorithm} digest with ${numZeroes} zeroes using ${maxHexChars} hex characters`;
-	}
+	console.log(`  Hex string: ${optimalString}`);
+	console.log(`  Digest: ${optimalDigest}\n`);
 
-	console.log(`\nFound digest with at least ${numZeroes} zeroes:`);
-	console.log(`  Hex string: ${hexNumString}`);
-	console.log(`  Digest: ${digest}\n`);
-
-	const copyPath = filePath + "." + algorithm + "." + digestPrefix;
+	const copyPath = filePath + "." + algorithm + ".mined";
 	await copyFile(filePath, copyPath);
 
 	let appendHexNumString = "";
@@ -81,12 +92,10 @@ async function withZeroes(filePath, algorithm, numZeroes) {
 		appendHexNumString = "\n";
 	}
 
-	appendHexNumString += hexNumString;
+	appendHexNumString += optimalString;
 	await appendFile(copyPath, appendHexNumString);
 
 	console.log(`Created file with appended hex code at ${copyPath}`);
 }
 
-module.exports = {
-	zeroesBlock
-};
+export { mineBlock };

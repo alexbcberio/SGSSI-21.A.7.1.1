@@ -1,9 +1,13 @@
-const { readFile, copyFile, appendFile } = require("fs/promises");
-const { resolve } = require("path");
-const { getFileDigest } = require("../helper/digest");
-const { fileExists } = require("../helper/fileExists");
+import { appendFile, copyFile, readFile } from "fs/promises";
 
-async function appendFileHash(filename, algorithm) {
+import { fileExists } from "../helper/fileExists";
+import { getFileDigest } from "../helper/digest";
+import { resolve } from "path";
+
+async function appendFileHash(
+	filename: string,
+	algorithm: string
+): Promise<void> {
 	const filePath = resolve(process.cwd(), filename);
 
 	try {
@@ -14,10 +18,12 @@ async function appendFileHash(filename, algorithm) {
 	}
 }
 
-async function copyFileWithDigest(filePath, algorithm) {
+async function copyFileWithDigest(
+	filePath: string,
+	algorithm: string
+): Promise<void> {
 	if (!(await fileExists(filePath))) {
-		rej(`File ${filePath} does not exist`);
-		return;
+		throw `File ${filePath} does not exist`;
 	}
 
 	const copyPath = filePath + "." + algorithm;
@@ -41,6 +47,4 @@ async function copyFileWithDigest(filePath, algorithm) {
 	console.log(`Created file with digest at: ${copyPath}`);
 }
 
-module.exports = {
-	appendFileHash
-};
+export { appendFileHash };

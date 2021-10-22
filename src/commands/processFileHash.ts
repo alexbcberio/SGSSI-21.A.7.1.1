@@ -1,7 +1,10 @@
-const { resolve } = require("path");
-const { getFileDigest } = require("../helper/digest");
+import { getFileDigest } from "../helper/digest";
+import { resolve } from "path";
 
-async function processFileHash(filename, algorithm) {
+async function processFileHash(
+	filename: string,
+	algorithm: string
+): Promise<void> {
 	const filePath = resolve(process.cwd(), filename);
 	try {
 		const digest = await getFileDigest(filePath, algorithm);
@@ -13,6 +16,4 @@ async function processFileHash(filename, algorithm) {
 	}
 }
 
-module.exports = {
-	processFileHash
-};
+export { processFileHash };

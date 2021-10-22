@@ -1,9 +1,9 @@
-const { processFileHash } = require("./commands/processFileHash");
-const { processText } = require("./commands/processText");
-const { appendFileHash } = require("./commands/appendFileHash");
-const { zeroesBlock } = require("./commands/zeroesBlock");
-const { mineBlock } = require("./commands/mineBlock");
-const { validateBlock } = require("./commands/validateBlock");
+import { appendFileHash } from "./commands/appendFileHash";
+import { mineBlock } from "./commands/mineBlock";
+import { processFileHash } from "./commands/processFileHash";
+import { processText } from "./commands/processText";
+import { validateBlock } from "./commands/validateBlock";
+import { zeroesBlock } from "./commands/zeroesBlock";
 
 const fileFlag = "-f";
 const textFlag = "-t";
@@ -46,7 +46,7 @@ const algorithm = "sha256";
 		await appendFileHash(filename, algorithm);
 	} else if (argv.includes(zeroesFlag)) {
 		const filename = argv[argv.indexOf(zeroesFlag) + 1];
-		const numZeroes = argv[argv.indexOf(zeroesFlag) + 2];
+		const numZeroes = parseInt(argv[argv.indexOf(zeroesFlag) + 2]);
 
 		if (!filename) {
 			console.error("Missing file name");
