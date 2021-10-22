@@ -8,8 +8,12 @@ module.exports = {
 		ecmaVersion: 2020,
 		sourceType: "module"
 	},
-	plugins: ["@typescript-eslint"],
-	extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+	plugins: ["@typescript-eslint", "prettier"],
+	extends: [
+		"eslint:recommended",
+		"plugin:@typescript-eslint/recommended",
+		"prettier"
+	],
 	rules: {
 		"no-promise-executor-return": ["error"],
 		"no-template-curly-in-string": ["error"],
@@ -52,6 +56,7 @@ module.exports = {
 		"no-var": ["error"],
 		"object-shorthand": ["error"],
 		"prefer-const": ["error"],
-		"prefer-template": ["error"]
+		"prefer-template": ["error"],
+		"prettier/prettier": ["error"]
 	}
 };
