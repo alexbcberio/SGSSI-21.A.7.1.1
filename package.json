@@ -12,7 +12,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "lint": "eslint src --fix",
+    "lint": "eslint src",
+    "lint-fix": "eslint src --fix",
     "package": "tsc && pkg ./bin/main.js -c package.json"
   },
   "pkg": {
