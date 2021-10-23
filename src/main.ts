@@ -1,9 +1,11 @@
-import { appendFileHash } from "./commands/appendFileHash";
-import { mineBlock } from "./commands/mineBlock";
-import { processFileHash } from "./commands/processFileHash";
-import { processText } from "./commands/processText";
-import { validateBlock } from "./commands/validateBlock";
-import { zeroesBlock } from "./commands/zeroesBlock";
+import {
+  appendFileHash,
+  mineBlock,
+  processFileHash,
+  processText,
+  validateBlock,
+  zeroesBlock,
+} from "./commands";
 
 const fileFlag = "-f";
 const textFlag = "-t";
