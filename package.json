@@ -2,7 +2,6 @@
   "name": "sgssi-21-a.7.1.1",
   "version": "1.0.0",
   "description": "Small utility software to mine and check blocks of SGSSI",
-  "bin": "build/main.js",
   "main": "src/main.ts",
   "license": "MIT",
   "private": true,
@@ -14,10 +13,11 @@
     "watch": "tsc -w",
     "lint": "eslint src",
     "lint-fix": "eslint src --fix",
-    "package": "tsc && pkg ./bin/main.js -c package.json"
+    "package": "tsc && pkg ./dist/main.js -c package.json -C br"
   },
   "pkg": {
-    "outputPath": "dist"
+    "outputPath": "bin",
+    "scripts": "dist/**/*.js"
   },
   "devDependencies": {
     "@types/node": "^16.11.4",
