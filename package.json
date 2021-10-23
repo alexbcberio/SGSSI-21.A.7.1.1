@@ -14,7 +14,7 @@
     "watch": "tsc -w",
     "lint": "eslint src",
     "lint-fix": "eslint src --fix",
-    "package": "tsc && pkg ./dist/main.js -c package.json -C br"
+    "package": "tsc && node package.js"
   },
   "pkg": {
     "outputPath": "bin",
