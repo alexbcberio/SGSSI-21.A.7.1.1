@@ -4,20 +4,6 @@ import { fileExists } from "../helper/fileExists";
 import { getFileDigest } from "../helper/digest";
 import { resolve } from "path";
 
-async function appendFileHash(
-  filename: string,
-  algorithm: string
-): Promise<void> {
-  const filePath = resolve(process.cwd(), filename);
-
-  try {
-    await copyFileWithDigest(filePath, algorithm);
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
-  }
-}
-
 async function copyFileWithDigest(
   filePath: string,
   algorithm: string
@@ -45,6 +31,20 @@ async function copyFileWithDigest(
   await appendFile(copyPath, appendDigest);
 
   console.log(`Created file with digest at: ${copyPath}`);
+}
+
+async function appendFileHash(
+  filename: string,
+  algorithm: string
+): Promise<void> {
+  const filePath = resolve(process.cwd(), filename);
+
+  try {
+    await copyFileWithDigest(filePath, algorithm);
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
 }
 
 export { appendFileHash };

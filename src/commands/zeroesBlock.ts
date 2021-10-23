@@ -4,21 +4,6 @@ import { fileExists } from "../helper/fileExists";
 import { getTextDigest } from "../helper/digest";
 import { resolve } from "path";
 
-async function zeroesBlock(
-  filename: string,
-  algorithm: string,
-  numZeroes: number
-): Promise<void> {
-  const filePath = resolve(process.cwd(), filename);
-
-  try {
-    await withZeroes(filePath, algorithm, numZeroes);
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
-  }
-}
-
 async function withZeroes(
   filePath: string,
   algorithm: string,
@@ -94,6 +79,21 @@ async function withZeroes(
   await appendFile(copyPath, appendHexNumString);
 
   console.log(`Created file with appended hex code at ${copyPath}`);
+}
+
+async function zeroesBlock(
+  filename: string,
+  algorithm: string,
+  numZeroes: number
+): Promise<void> {
+  const filePath = resolve(process.cwd(), filename);
+
+  try {
+    await withZeroes(filePath, algorithm, numZeroes);
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
 }
 
 export { zeroesBlock };

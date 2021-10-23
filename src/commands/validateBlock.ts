@@ -2,30 +2,6 @@ import { fileExists } from "../helper/fileExists";
 import { getFileDigest } from "../helper/digest";
 import { readFile } from "fs/promises";
 
-async function validateBlock(
-  originFilePath: string,
-  minedFilePath: string,
-  algorithm: string
-): Promise<void> {
-  const exists = await Promise.all([
-    fileExists(originFilePath),
-    fileExists(minedFilePath),
-  ]);
-
-  if (exists.includes(false)) {
-    console.error("Some of the files does not exist");
-    process.exit(1);
-  }
-
-  try {
-    await checkRules(originFilePath, minedFilePath, algorithm);
-    console.log("The file has passed the rules and PoW");
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
-  }
-}
-
 async function checkRules(
   originFilePath: string,
   minedFilePath: string,
@@ -61,6 +37,30 @@ async function checkRules(
   const digest = await getFileDigest(minedFilePath, algorithm);
   if (!digest.startsWith("0")) {
     throw `The ${algorithm} digest does not start by 0.`;
+  }
+}
+
+async function validateBlock(
+  originFilePath: string,
+  minedFilePath: string,
+  algorithm: string
+): Promise<void> {
+  const exists = await Promise.all([
+    fileExists(originFilePath),
+    fileExists(minedFilePath),
+  ]);
+
+  if (exists.includes(false)) {
+    console.error("Some of the files does not exist");
+    process.exit(1);
+  }
+
+  try {
+    await checkRules(originFilePath, minedFilePath, algorithm);
+    console.log("The file has passed the rules and PoW");
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
   }
 }
 

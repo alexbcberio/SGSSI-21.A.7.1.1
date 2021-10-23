@@ -4,17 +4,6 @@ import { fileExists } from "../helper/fileExists";
 import { getTextDigest } from "../helper/digest";
 import { resolve } from "path";
 
-async function mineBlock(filename: string, algorithm: string): Promise<void> {
-  const filePath = resolve(process.cwd(), filename);
-
-  try {
-    await searchZeroes(filePath, algorithm);
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
-  }
-}
-
 async function searchZeroes(
   filePath: string,
   algorithm: string
@@ -23,7 +12,7 @@ async function searchZeroes(
     throw `File ${filePath} does not exist`;
   }
 
-  const maxSeconds = 60;
+  const maxMs = 60e3;
   const maxHexChars = 8;
   const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
 
@@ -76,10 +65,7 @@ async function searchZeroes(
         optimalString = hexNumString;
       }
     }
-  } while (
-    Date.now() - startTimestamp <= 1000 * maxSeconds &&
-    hexNum < maxHexNumValue
-  );
+  } while (Date.now() - startTimestamp <= maxMs && hexNum < maxHexNumValue);
 
   console.log(`  Hex string: ${optimalString}`);
   console.log(`  Digest: ${optimalDigest}\n`);
@@ -96,6 +82,17 @@ async function searchZeroes(
   await appendFile(copyPath, appendHexNumString);
 
   console.log(`Created file with appended hex code at ${copyPath}`);
+}
+
+async function mineBlock(filename: string, algorithm: string): Promise<void> {
+  const filePath = resolve(process.cwd(), filename);
+
+  try {
+    await searchZeroes(filePath, algorithm);
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
 }
 
 export { mineBlock };

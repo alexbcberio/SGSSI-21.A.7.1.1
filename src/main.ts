@@ -14,6 +14,31 @@ const verifyFlag = "-v";
 
 const algorithm = "sha256";
 
+function showHelp() {
+  const usage = [
+    `${process.argv[0]} ${process.argv[1]}`,
+    `${fileFlag} <filepath> |`,
+    `${textFlag} <text> |`,
+    `${appendFlag} <filepath> |`,
+    `${zeroesFlag} <block path> <num zeroes>`,
+    `${mineFlag} <block path>`,
+    `${verifyFlag} <origin block path> <mined block path>`,
+  ];
+
+  const params = [
+    `${fileFlag}\tGets digest of a file.`,
+    `${textFlag}\tGets digest of a text.`,
+    `${appendFlag}\tCreates a copy of a file with its digest at the end.`,
+    `${zeroesFlag}\tSearches a block with a prefix of given number of zeroes.`,
+    `${mineFlag}\tMines a block getting a prefix with the maximum number of zeroes.`,
+    `${verifyFlag}\tVerifies that the mined block complies with the origin block format.`,
+  ];
+
+  console.log(usage.map((v, i) => (i > 0 ? `  ${v}` : v)).join("\n"));
+  console.log("\nParameters:\n");
+  console.log(params.join("\n"));
+}
+
 (async function () {
   const argv = process.argv.splice(2);
 
@@ -83,28 +108,3 @@ const algorithm = "sha256";
     showHelp();
   }
 })();
-
-function showHelp() {
-  const usage = [
-    `${process.argv[0]} ${process.argv[1]}`,
-    `${fileFlag} <filepath> |`,
-    `${textFlag} <text> |`,
-    `${appendFlag} <filepath> |`,
-    `${zeroesFlag} <block path> <num zeroes>`,
-    `${mineFlag} <block path>`,
-    `${verifyFlag} <origin block path> <mined block path>`,
-  ];
-
-  const params = [
-    `${fileFlag}\tGets digest of a file.`,
-    `${textFlag}\tGets digest of a text.`,
-    `${appendFlag}\tCreates a copy of a file with its digest at the end.`,
-    `${zeroesFlag}\tSearches a block with a prefix of given number of zeroes.`,
-    `${mineFlag}\tMines a block getting a prefix with the maximum number of zeroes.`,
-    `${verifyFlag}\tVerifies that the mined block complies with the origin block format.`,
-  ];
-
-  console.log(usage.map((v, i) => (i > 0 ? `  ${v}` : v)).join("\n"));
-  console.log("\nParameters:\n");
-  console.log(params.join("\n"));
-}

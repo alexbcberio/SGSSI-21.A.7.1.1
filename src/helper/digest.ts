@@ -6,12 +6,11 @@ async function getFileDigest(
   filePath: string,
   algorithm: string
 ): Promise<string> {
-  return new Promise(async (res, rej) => {
-    if (!(await fileExists(filePath))) {
-      rej(`File ${filePath} does not exist`);
-      return;
-    }
+  if (!(await fileExists(filePath))) {
+    throw `File ${filePath} does not exist`;
+  }
 
+  return new Promise((res) => {
     const hash = createHash(algorithm);
     const stream = createReadStream(filePath);
 
