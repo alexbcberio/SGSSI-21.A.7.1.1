@@ -4,8 +4,13 @@ Activity for SGSSI university course.
 
 ## Description of the tool
 
-This tool can create sha256 digests of files and text. It also can create a copy
-of a file appending its digest on the last line and mine a block.
+This is a helper tool for cryptographic works done on the course. Some of the
+use cases of the tool:
+
+- Get a hash of a text or file.
+- Create a copy of a file with its hash appended.
+- Search a digest with a predefined number of zeroes.
+- Mine a block
 
 ### Block mining
 
@@ -17,8 +22,8 @@ that creates a digest with a predefined number of zeroes.
 
 ## Usage
 
-Precompiled packages are available inside the `bin` directory, run them from
-the console with no arguments to get the help of usage.
+Precompiled packages are available on the [releases page](https://github.com/alexbcberio/SGSSI-21.A.7.1.1/releases)
+of the repository.
 
 ## Running and packaging
 
@@ -37,7 +42,7 @@ yarn to manage the project dependencies.
 ### Running from source
 
 The project is build on TypeScript, you can run it without compiling it using
-the "start" script `yarn start <args>`.
+the "start" script `yarn start ...`.
 
 ### Compiling
 
