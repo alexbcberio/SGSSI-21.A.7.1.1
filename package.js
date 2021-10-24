@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { readdir, rename } = require("fs").promises;
+const { readdir, rename, readFile } = require("fs").promises;
 const { resolve } = require("path");
 
 const { exec } = require("pkg");
@@ -21,8 +21,11 @@ async function pkg() {
 }
 
 async function postPackage() {
+  const { version } = JSON.parse(await readFile("package.json"));
   const currentNames = await readdir(binDir);
-  const newNames = currentNames.map((v) => `${binName}-${v.split("-").pop()}`);
+  const newNames = currentNames.map(
+    (n) => `${binName}-v${version}-${n.split("-").pop()}`
+  );
 
   const renamePromises = [];
   for (let i = 0; i < currentNames.length; i++) {
