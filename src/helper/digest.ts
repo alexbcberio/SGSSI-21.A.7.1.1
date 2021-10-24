@@ -1,5 +1,7 @@
-import { createHash } from "crypto";
+import { Hash, createHash } from "crypto";
+
 import { createReadStream } from "fs";
+import { errorExitCode } from "../config";
 import { fileExists } from "./fileExists";
 
 async function getFileDigest(
@@ -11,7 +13,15 @@ async function getFileDigest(
   }
 
   return new Promise((res) => {
-    const hash = createHash(algorithm);
+    let hash: Hash;
+
+    try {
+      hash = createHash(algorithm);
+    } catch (e: any) {
+      console.log(e.message);
+      process.exit(errorExitCode);
+    }
+
     const stream = createReadStream(filePath);
 
     stream.on("data", (data) => {
@@ -26,7 +36,14 @@ async function getFileDigest(
 }
 
 function getTextDigest(text: string, algorithm: string): string {
-  const hash = createHash(algorithm);
+  let hash: Hash;
+
+  try {
+    hash = createHash(algorithm);
+  } catch (e: any) {
+    console.log(e.message);
+    process.exit(errorExitCode);
+  }
 
   hash.update(text);
 
