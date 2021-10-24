@@ -29,6 +29,7 @@ async function checkRules(
     throw "The mined file is missing the signature line.";
   }
 
+  // eslint-disable-next-line no-magic-numbers
   if (lines.length > 0) {
     throw "The mined file contains extra lines.";
   }

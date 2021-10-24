@@ -6,20 +6,15 @@ import { fileExists } from "../helper/fileExists";
 import { getTextDigest } from "../helper/digest";
 import { resolve } from "path";
 
-async function withZeroes(
+async function searchZeroes(
   filePath: string,
-  algorithm: string,
-  numZeroes: number
-) {
+  algorithm: string
+): Promise<void> {
   if (!(await fileExists(filePath))) {
     throw `File ${filePath} does not exist`;
   }
 
-  const minNumZeroes = 1;
-  if (numZeroes < minNumZeroes) {
-    throw `Num zeroes must be at least ${minNumZeroes}`;
-  }
-
+  const maxMs = 60e3;
   const maxHexChars = 8;
   const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
 
@@ -33,43 +28,54 @@ async function withZeroes(
     appendNewLine = "\n";
   }
 
-  const digestPrefix = "0".repeat(numZeroes);
-
   let hexNum = -1;
   let hexNumString;
   let digest;
 
+  let optimalDigest;
+  let optimalDigestZeroes = 0;
+  let optimalString;
+
   const startTimestamp = Date.now();
   do {
     hexNum++;
+    // eslint-disable-next-line no-magic-numbers
     hexNumString = hexNum.toString(16).toLowerCase();
 
     if (hexNumString.length < maxHexChars) {
       hexNumString =
         "0".repeat(maxHexChars - hexNumString.length) + hexNumString;
     }
+    hexNumString += " G040612";
 
     const contentWithHex = content + appendNewLine + hexNumString;
 
     digest = await getTextDigest(contentWithHex, algorithm);
 
     console.log(`${digest} ${hexNumString}`);
-  } while (!digest.startsWith(digestPrefix) && hexNum < maxHexNumValue);
 
-  const msTimeTaken = Date.now() - startTimestamp;
-  console.log(
-    `\nFinish searching a digest with ${numZeroes} zeroes after ${msTimeTaken}ms.`
-  );
+    // eslint-disable-next-line no-magic-numbers
+    if (digest.startsWith("0".repeat(optimalDigestZeroes + 1))) {
+      let numZeroes = 0;
+      // eslint-disable-next-line no-magic-numbers
+      for (let i = optimalDigestZeroes + 1; i < digest.length; i++) {
+        if (digest.startsWith("0".repeat(i))) {
+          numZeroes = i;
+        }
+      }
 
-  if (!digest.startsWith(digestPrefix)) {
-    throw `There could not be found any ${algorithm} digest with ${numZeroes} zeroes using ${maxHexChars} hex characters`;
-  }
+      if (numZeroes > optimalDigestZeroes) {
+        optimalDigest = digest;
+        optimalDigestZeroes = numZeroes;
+        optimalString = hexNumString;
+      }
+    }
+  } while (Date.now() - startTimestamp <= maxMs && hexNum < maxHexNumValue);
 
-  console.log(`\nFound digest with at least ${numZeroes} zeroes:`);
-  console.log(`  Hex string: ${hexNumString}`);
-  console.log(`  Digest: ${digest}\n`);
+  console.log(`  Hex string: ${optimalString}`);
+  console.log(`  Digest: ${optimalDigest}\n`);
 
-  const copyPath = `${filePath}.${algorithm}.${digestPrefix}`;
+  const copyPath = `${filePath}.${algorithm}.mined`;
   await copyFile(filePath, copyPath);
 
   let appendHexNumString = "";
@@ -77,42 +83,34 @@ async function withZeroes(
     appendHexNumString = "\n";
   }
 
-  appendHexNumString += hexNumString;
+  appendHexNumString += optimalString;
   await appendFile(copyPath, appendHexNumString);
 
   console.log(`Created file with appended hex code at ${copyPath}`);
 }
 
-async function zeroesBlock(
-  filename: string,
-  algorithm: string,
-  numZeroes: number
-): Promise<void> {
+async function mineBlock(filename: string, algorithm: string): Promise<void> {
   const filePath = resolve(process.cwd(), filename);
 
   try {
-    await withZeroes(filePath, algorithm, numZeroes);
+    await searchZeroes(filePath, algorithm);
   } catch (e) {
     console.error(e);
     process.exit(errorExitCode);
   }
 }
 
-const zeroes: Command = {
-  name: "zeroes",
+const mine: Command = {
+  name: "mine",
   get usage(): string {
-    return "<filename> <number of zeroes> [algorithm]";
+    return "<filename> [algorithm]";
   },
   async execute(args: Array<string>): Promise<void> {
     const filename = args.shift();
-    const numZeroes = args.shift();
     let algorithm = args.shift();
 
     if (!filename) {
       console.error("Missing filename");
-      process.exit(errorExitCode);
-    } else if (!numZeroes) {
-      console.error("Missing number of zeroes");
       process.exit(errorExitCode);
     } else if (!algorithm) {
       algorithm = defaultAlgorithm;
@@ -121,8 +119,8 @@ const zeroes: Command = {
       );
     }
 
-    await zeroesBlock(filename, algorithm, parseInt(numZeroes));
+    await mineBlock(filename, algorithm);
   },
 };
 
-export { zeroes };
+export { mine };
