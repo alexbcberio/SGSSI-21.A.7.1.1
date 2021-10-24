@@ -9,6 +9,7 @@
     "type": "git",
     "url": "https://github.com/alexbcberio/SGSSI-21.A.7.1.1"
   },
+  "type": "module",
   "dependencies": {
     "pkg": "^5.3.3"
   },

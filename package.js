@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { readdir, rename, readFile } = require("fs").promises;
-const { resolve } = require("path");
+import { readFile, readdir, rename } from "fs/promises";
 
-const { exec } = require("pkg");
-const rimraf = require("rimraf");
+import { exec } from "pkg";
+import newGithubreleaseUrl from "new-github-release-url";
+import open from "open";
+import { resolve } from "path";
+import rimraf from "rimraf";
 
 const mainJsFile = "./dist/main.js";
 
-const binDir = resolve(__dirname, "bin");
+const binDir = resolve("bin");
 const binName = "sgssi-crypto";
 
 function prePackage() {
@@ -21,7 +23,7 @@ async function pkg() {
 }
 
 async function postPackage() {
-  const { version } = JSON.parse(await readFile("package.json"));
+  const { version, repository } = JSON.parse(await readFile("package.json"));
   const currentNames = await readdir(binDir);
   const newNames = currentNames.map(
     (n) => `${binName}-v${version}-${n.split("-").pop()}`
@@ -35,6 +37,12 @@ async function postPackage() {
     renamePromises.push(rename(currentPath, newPath));
   }
 
+  const url = newGithubreleaseUrl({
+    repoUrl: repository.url,
+    tag: `v${version}`,
+    title: `Version v${version}`,
+  });
+  await open(url);
   await Promise.all(renamePromises);
 }
 
