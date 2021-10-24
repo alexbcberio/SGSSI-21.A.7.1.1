@@ -1,5 +1,7 @@
 import { appendFile, copyFile, readFile } from "fs/promises";
+import { defaultAlgorithm, errorExitCode } from "../config";
 
+import { Command } from "../interfaces/Command";
 import { fileExists } from "../helper/fileExists";
 import { getTextDigest } from "../helper/digest";
 import { resolve } from "path";
@@ -92,8 +94,35 @@ async function zeroesBlock(
     await withZeroes(filePath, algorithm, numZeroes);
   } catch (e) {
     console.error(e);
-    process.exit(1);
+    process.exit(errorExitCode);
   }
 }
 
-export { zeroesBlock };
+const zeroes: Command = {
+  name: "zeroes",
+  get usage(): string {
+    return "<filename> <number of zeroes> [algorithm]";
+  },
+  async execute(args: Array<string>): Promise<void> {
+    const filename = args.shift();
+    const numZeroes = args.shift();
+    let algorithm = args.shift();
+
+    if (!filename) {
+      console.error("Missing filename");
+      process.exit(errorExitCode);
+    } else if (!numZeroes) {
+      console.error("Missing number of zeroes");
+      process.exit(errorExitCode);
+    } else if (!algorithm) {
+      algorithm = defaultAlgorithm;
+      console.info(
+        `No algorithm provided, falling back to default: ${algorithm}`
+      );
+    }
+
+    await zeroesBlock(filename, algorithm, parseInt(numZeroes));
+  },
+};
+
+export { zeroes };

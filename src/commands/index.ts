@@ -1,15 +1,11 @@
-import { appendFileHash } from "./appendFileHash";
-import { mineBlock } from "./mineBlock";
-import { processFileHash } from "./processFileHash";
-import { processText } from "./processText";
-import { validateBlock } from "./validateBlock";
-import { zeroesBlock } from "./zeroesBlock";
+import { Command } from "../interfaces/Command";
+import { append } from "./append";
+import { file } from "./file";
+import { mine } from "./mine";
+import { text } from "./text";
+import { validate } from "./validate";
+import { zeroes } from "./zeroes";
 
-export {
-  appendFileHash,
-  mineBlock,
-  processFileHash,
-  processText,
-  validateBlock,
-  zeroesBlock,
-};
+const commands: Array<Command> = [text, file, append, zeroes, mine, validate];
+
+export { commands };

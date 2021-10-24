@@ -1,6 +1,10 @@
+import { defaultAlgorithm, errorExitCode } from "../config";
+
+import { Command } from "../interfaces/Command";
 import { fileExists } from "../helper/fileExists";
 import { getFileDigest } from "../helper/digest";
 import { readFile } from "fs/promises";
+import { resolve } from "path";
 
 async function checkRules(
   originFilePath: string,
@@ -41,10 +45,13 @@ async function checkRules(
 }
 
 async function validateBlock(
-  originFilePath: string,
-  minedFilePath: string,
+  originFilename: string,
+  minedFilename: string,
   algorithm: string
 ): Promise<void> {
+  const originFilePath = resolve(originFilename);
+  const minedFilePath = resolve(minedFilename);
+
   const exists = await Promise.all([
     fileExists(originFilePath),
     fileExists(minedFilePath),
@@ -52,7 +59,7 @@ async function validateBlock(
 
   if (exists.includes(false)) {
     console.error("Some of the files does not exist");
-    process.exit(1);
+    process.exit(errorExitCode);
   }
 
   try {
@@ -60,8 +67,35 @@ async function validateBlock(
     console.log("The file has passed the rules and PoW");
   } catch (e) {
     console.error(e);
-    process.exit(1);
+    process.exit(errorExitCode);
   }
 }
 
-export { validateBlock };
+const validate: Command = {
+  name: "validate",
+  get usage(): string {
+    return "<origin filename> <mined filename> [algorithm]";
+  },
+  async execute(args: Array<string>): Promise<void> {
+    const originFilename = args.shift();
+    const minedFilename = args.shift();
+    let algorithm = args.shift();
+
+    if (!originFilename) {
+      console.error("Missing origin filename");
+      process.exit(errorExitCode);
+    } else if (!minedFilename) {
+      console.error("Missing mined filename");
+      process.exit(errorExitCode);
+    } else if (!algorithm) {
+      algorithm = defaultAlgorithm;
+      console.info(
+        `No algorithm provided, falling back to default: ${algorithm}`
+      );
+    }
+
+    await validateBlock(originFilename, minedFilename, algorithm);
+  },
+};
+
+export { validate };
