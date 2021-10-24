@@ -1,15 +1,18 @@
 # Files integrity
 
-Last updated at `23/10/2021, 18:08:17`
+Last updated at `24/10/2021, 19:19:54`
 
 | File path | MD5 digest |
 | --- | --- |
-| `./src/commands/appendFileHash.ts` | `40fc5d9fba380b603494fb4fb605df61` |
-| `./src/commands/mineBlock.ts` | `6a66165a30aa86c7fbf76c2db33c55e0` |
-| `./src/commands/processFileHash.ts` | `ac3ec4800fb0eac6235a3f66bac03098` |
-| `./src/commands/processText.ts` | `d84f626ec86c0baf427b3448cd69480e` |
-| `./src/commands/validateBlock.ts` | `2652b094d81d3ae512bcecaabd96811f` |
-| `./src/commands/zeroesBlock.ts` | `16afd2e47e9aa2664feeb7956347afc1` |
-| `./src/helper/digest.ts` | `27fdbe4cac4e32f3d22d73263f3ef265` |
-| `./src/helper/fileExists.ts` | `09c982c77ab3b6606b887f6c58ad8288` |
-| `./src/main.ts` | `9a159c6c1692172ca87b8d4b1afb914d` |
+| `./src/commands/append.ts` | `f31ea23ef3e28d149beee2524d1805c5` |
+| `./src/commands/file.ts` | `db9465c712a151a0d1b3e73cbf22f31f` |
+| `./src/commands/index.ts` | `b414df610d099f8952463ff3818ef7c4` |
+| `./src/commands/mine.ts` | `7b7d632308c704a9298c2601c3d2b136` |
+| `./src/commands/text.ts` | `75177263228e91325c8f839efcd20295` |
+| `./src/commands/validate.ts` | `7712526899dd8a4b6979b2a7a1fa9d92` |
+| `./src/commands/zeroes.ts` | `f4000e6576d372b7e0c8526499b6b3a1` |
+| `./src/config.ts` | `771f0d5bddae60d1c577494136e82f29` |
+| `./src/helper/digest.ts` | `d69109ac88181595e2ee44f5f92d6447` |
+| `./src/helper/fileExists.ts` | `45c2b53b6f925091d8adcea06ecea2e2` |
+| `./src/interfaces/Command.ts` | `af6c9e18eea05fadc2a205a7728b3445` |
+| `./src/main.ts` | `d6a63eb338d177e750f91820b81ecadc` |
