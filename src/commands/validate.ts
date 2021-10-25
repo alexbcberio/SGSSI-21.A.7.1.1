@@ -11,10 +11,12 @@ async function checkRules(
   minedFilePath: string,
   algorithm: string
 ): Promise<void> {
-  const originReadBuffer = await readFile(originFilePath);
-  const originContent = originReadBuffer.toString();
+  const [originReadBuffer, minedReadBuffer] = await Promise.all([
+    readFile(originFilePath),
+    readFile(minedFilePath),
+  ]);
 
-  const minedReadBuffer = await readFile(minedFilePath);
+  const originContent = originReadBuffer.toString();
   let minedContent = minedReadBuffer.toString();
 
   if (!minedContent.startsWith(originContent)) {
@@ -36,7 +38,7 @@ async function checkRules(
 
   const regexp = new RegExp("^([0-9a-f]){8}[ ]G([0-3][0-9]){1,4}$");
   if (!regexp.test(lastLine)) {
-    throw "The block syntax does not correspond with the SGSSI-21 groups'.";
+    throw "The block syntax does not correspond with the SGSSI-21 groups.";
   }
 
   const digest = await getFileDigest(minedFilePath, algorithm);

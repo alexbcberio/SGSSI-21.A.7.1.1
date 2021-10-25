@@ -23,8 +23,7 @@ async function withZeroes(
   const maxHexChars = 8;
   const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
 
-  const readBuffer = await readFile(filePath);
-  const content = readBuffer.toString();
+  const content = (await readFile(filePath)).toString();
 
   const hasEndNewLine = content.endsWith("\n") || content.endsWith("\r\n");
 
@@ -39,11 +38,11 @@ async function withZeroes(
   let hexNumString;
   let digest;
 
+  console.log("Starting searching, this may take a while...");
   const startTimestamp = Date.now();
   do {
-    hexNum++;
     // eslint-disable-next-line no-magic-numbers
-    hexNumString = hexNum.toString(16).toLowerCase();
+    hexNumString = (hexNum++).toString(16).toLowerCase();
 
     if (hexNumString.length < maxHexChars) {
       hexNumString =
@@ -53,13 +52,11 @@ async function withZeroes(
     const contentWithHex = content + appendNewLine + hexNumString;
 
     digest = await getTextDigest(contentWithHex, algorithm);
-
-    console.log(`${digest} ${hexNumString}`);
   } while (!digest.startsWith(digestPrefix) && hexNum < maxHexNumValue);
 
   const msTimeTaken = Date.now() - startTimestamp;
   console.log(
-    `\nFinish searching a digest with ${numZeroes} zeroes after ${msTimeTaken}ms.`
+    `\nFinished searching a digest with ${numZeroes} zeroes after ${msTimeTaken}ms.`
   );
 
   if (!digest.startsWith(digestPrefix)) {

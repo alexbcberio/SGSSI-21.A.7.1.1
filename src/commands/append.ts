@@ -16,12 +16,13 @@ async function copyFileWithDigest(
 
   const copyPath = `${filePath}.${algorithm}`;
 
-  const digest = await getFileDigest(filePath, algorithm);
-  await copyFile(filePath, copyPath);
+  const [digest, , readBuffer] = await Promise.all([
+    getFileDigest(filePath, algorithm),
+    copyFile(filePath, copyPath),
+    readFile(filePath),
+  ]);
 
-  const readBuffer = await readFile(copyPath);
   const content = readBuffer.toString();
-
   const hasEndNewLine = content.endsWith("\n") || content.endsWith("\r\n");
 
   let appendDigest = "";

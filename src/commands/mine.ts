@@ -6,21 +6,16 @@ import { fileExists } from "../helper/fileExists";
 import { getTextDigest } from "../helper/digest";
 import { resolve } from "path";
 
-async function searchZeroes(
-  filePath: string,
-  algorithm: string
-): Promise<void> {
+const maxMs = 60e3;
+const maxHexChars = 8;
+const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
+
+async function mineFile(filePath: string, algorithm: string): Promise<void> {
   if (!(await fileExists(filePath))) {
     throw `File ${filePath} does not exist`;
   }
 
-  const maxMs = 60e3;
-  const maxHexChars = 8;
-  const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
-
-  const readBuffer = await readFile(filePath);
-  const content = readBuffer.toString();
-
+  const content = (await readFile(filePath)).toString();
   const hasEndNewLine = content.endsWith("\n") || content.endsWith("\r\n");
 
   let appendNewLine = "";
@@ -28,19 +23,17 @@ async function searchZeroes(
     appendNewLine = "\n";
   }
 
-  let hexNum = -1;
+  let hexNum = 0;
   let hexNumString;
-  let digest;
+  let currentDigest;
 
-  let optimalDigest;
-  let optimalDigestZeroes = 0;
+  let optimalDigest = "a";
   let optimalString;
 
   const startTimestamp = Date.now();
   do {
-    hexNum++;
     // eslint-disable-next-line no-magic-numbers
-    hexNumString = hexNum.toString(16).toLowerCase();
+    hexNumString = (hexNum++).toString(16).toLowerCase();
 
     if (hexNumString.length < maxHexChars) {
       hexNumString =
@@ -50,25 +43,13 @@ async function searchZeroes(
 
     const contentWithHex = content + appendNewLine + hexNumString;
 
-    digest = await getTextDigest(contentWithHex, algorithm);
+    currentDigest = await getTextDigest(contentWithHex, algorithm);
 
-    console.log(`${digest} ${hexNumString}`);
+    if (currentDigest <= optimalDigest) {
+      console.log(`New optimal digest found ${currentDigest} ${hexNumString}`);
 
-    // eslint-disable-next-line no-magic-numbers
-    if (digest.startsWith("0".repeat(optimalDigestZeroes + 1))) {
-      let numZeroes = 0;
-      // eslint-disable-next-line no-magic-numbers
-      for (let i = optimalDigestZeroes + 1; i < digest.length; i++) {
-        if (digest.startsWith("0".repeat(i))) {
-          numZeroes = i;
-        }
-      }
-
-      if (numZeroes > optimalDigestZeroes) {
-        optimalDigest = digest;
-        optimalDigestZeroes = numZeroes;
-        optimalString = hexNumString;
-      }
+      optimalDigest = currentDigest;
+      optimalString = hexNumString;
     }
   } while (Date.now() - startTimestamp <= maxMs && hexNum < maxHexNumValue);
 
@@ -93,7 +74,7 @@ async function mineBlock(filename: string, algorithm: string): Promise<void> {
   const filePath = resolve(process.cwd(), filename);
 
   try {
-    await searchZeroes(filePath, algorithm);
+    await mineFile(filePath, algorithm);
   } catch (e) {
     console.error(e);
     process.exit(errorExitCode);
