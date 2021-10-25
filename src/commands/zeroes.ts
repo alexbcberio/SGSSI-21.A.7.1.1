@@ -2,6 +2,7 @@ import { appendFile, copyFile, readFile } from "fs/promises";
 import { defaultAlgorithm, errorExitCode } from "../config";
 
 import { Command } from "../interfaces/Command";
+import { Progress } from "../helper/Progress";
 import { fileExists } from "../helper/fileExists";
 import { getTextDigest } from "../helper/digest";
 import { resolve } from "path";
@@ -38,7 +39,9 @@ async function withZeroes(
   let hexNumString;
   let digest;
 
-  console.log("Starting searching, this may take a while...");
+  const progress = new Progress("Searching, this may take a while");
+  progress.start();
+
   const startTimestamp = Date.now();
   do {
     // eslint-disable-next-line no-magic-numbers
@@ -52,6 +55,8 @@ async function withZeroes(
     const contentWithHex = content + appendNewLine + hexNumString;
 
     digest = await getTextDigest(contentWithHex, algorithm);
+
+    progress.update();
   } while (!digest.startsWith(digestPrefix) && hexNum < maxHexNumValue);
 
   const msTimeTaken = Date.now() - startTimestamp;

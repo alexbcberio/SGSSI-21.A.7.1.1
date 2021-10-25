@@ -2,6 +2,7 @@ import { appendFile, copyFile, readFile } from "fs/promises";
 import { defaultAlgorithm, errorExitCode } from "../config";
 
 import { Command } from "../interfaces/Command";
+import { Progress } from "../helper/Progress";
 import { fileExists } from "../helper/fileExists";
 import { getTextDigest } from "../helper/digest";
 import { resolve } from "path";
@@ -30,6 +31,9 @@ async function mineFile(filePath: string, algorithm: string): Promise<void> {
   let optimalDigest = "a";
   let optimalString;
 
+  const progress = new Progress("Mining file");
+  progress.start();
+
   const startTimestamp = Date.now();
   do {
     // eslint-disable-next-line no-magic-numbers
@@ -46,11 +50,11 @@ async function mineFile(filePath: string, algorithm: string): Promise<void> {
     currentDigest = await getTextDigest(contentWithHex, algorithm);
 
     if (currentDigest <= optimalDigest) {
-      console.log(`New optimal digest found ${currentDigest} ${hexNumString}`);
-
       optimalDigest = currentDigest;
       optimalString = hexNumString;
     }
+
+    progress.update();
   } while (Date.now() - startTimestamp <= maxMs && hexNum < maxHexNumValue);
 
   console.log(`  Hex string: ${optimalString}`);
