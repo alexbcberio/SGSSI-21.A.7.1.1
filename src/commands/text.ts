@@ -1,6 +1,6 @@
-import { defaultAlgorithm, errorExitCode } from "../config";
-
 import { Command } from "../interfaces/Command";
+import { Command as Commander } from "commander";
+import { algorithmOption } from "../helper/command";
 import { getTextDigest } from "../helper/digest";
 
 function processText(text: string, algorithm: string): void {
@@ -9,29 +9,26 @@ function processText(text: string, algorithm: string): void {
   console.log(digest);
 }
 
+const name = "text";
+const cmd = new Commander(name);
+
+cmd.addOption(algorithmOption);
+
+cmd.argument("<text>", "Text to calculate digest from");
+
+cmd.action((text, { algorithm }) => {
+  processText(text, algorithm);
+});
+
 const text: Command = {
-  name: "text",
+  name,
   get usage(): string {
-    return "<text> [algorithm]";
+    return cmd.usage();
   },
-  execute(args: Array<string>): Promise<void> {
-    const text = args.shift();
-    let algorithm = args.shift();
-
-    if (!text) {
-      console.error("Missing text");
-      process.exit(errorExitCode);
-    } else if (!algorithm) {
-      algorithm = defaultAlgorithm;
-      console.info(
-        `No algorithm provided, falling back to default: ${algorithm}`
-      );
-    }
-
-    processText(text, algorithm);
-
-    return Promise.resolve();
+  async execute(args: Array<string>): Promise<void> {
+    await cmd.parseAsync(args);
   },
+  cmd,
 };
 
 export { text };
