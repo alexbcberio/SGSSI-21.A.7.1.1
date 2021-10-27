@@ -1,8 +1,10 @@
+import { algorithmOption, fileArgument } from "../helper/command";
 import { appendFile, copyFile, readFile } from "fs/promises";
-import { defaultAlgorithm, errorExitCode } from "../config";
 
 import { Command } from "../interfaces/Command";
+import { Command as Commander } from "commander";
 import { Progress } from "../helper/Progress";
+import { errorExitCode } from "../config";
 import { fileExists } from "../helper/fileExists";
 import { getTextDigest } from "../helper/digest";
 import { resolve } from "path";
@@ -101,31 +103,27 @@ async function zeroesBlock(
   }
 }
 
+const name = "zeroes";
+const cmd = new Commander(name);
+
+cmd.addOption(algorithmOption);
+
+cmd.addArgument(fileArgument);
+cmd.argument("<zeroes>", "Number of zeroes the hash has to start with");
+
+cmd.action(async (file, zeroes, { algorithm }) => {
+  await zeroesBlock(file, algorithm, parseInt(zeroes));
+});
+
 const zeroes: Command = {
-  name: "zeroes",
+  name,
   get usage(): string {
-    return "<filename> <number of zeroes> [algorithm]";
+    return cmd.usage();
   },
   async execute(args: Array<string>): Promise<void> {
-    const filename = args.shift();
-    const numZeroes = args.shift();
-    let algorithm = args.shift();
-
-    if (!filename) {
-      console.error("Missing filename");
-      process.exit(errorExitCode);
-    } else if (!numZeroes) {
-      console.error("Missing number of zeroes");
-      process.exit(errorExitCode);
-    } else if (!algorithm) {
-      algorithm = defaultAlgorithm;
-      console.info(
-        `No algorithm provided, falling back to default: ${algorithm}`
-      );
-    }
-
-    await zeroesBlock(filename, algorithm, parseInt(numZeroes));
+    await cmd.parseAsync(args);
   },
+  cmd,
 };
 
 export { zeroes };
