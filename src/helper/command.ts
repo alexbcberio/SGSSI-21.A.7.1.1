@@ -3,7 +3,7 @@ import { Argument, Option } from "commander";
 import { defaultAlgorithm } from "../config";
 
 const algorithmOption = new Option(
-  "-a, --algorithm <algorithm",
+  "-a, --algorithm <algorithm>",
   "Algorithm function name"
 );
 algorithmOption.default(defaultAlgorithm);
