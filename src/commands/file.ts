@@ -1,6 +1,8 @@
-import { defaultAlgorithm, errorExitCode } from "../config";
+import { algorithmOption, fileArgument } from "../helper/command";
 
 import { Command } from "../interfaces/Command";
+import { Command as Commander } from "commander";
+import { errorExitCode } from "../config";
 import { getFileDigest } from "../helper/digest";
 import { resolve } from "path";
 
@@ -19,27 +21,26 @@ async function processFileHash(
   }
 }
 
+const name = "file";
+const cmd = new Commander(name);
+
+cmd.addOption(algorithmOption);
+
+cmd.addArgument(fileArgument);
+
+cmd.action(async (filename, { a }) => {
+  await processFileHash(filename, a);
+});
+
 const file: Command = {
-  name: "file",
+  name,
   get usage(): string {
-    return "<filename> [algorithm]";
+    return cmd.usage();
   },
   async execute(args: Array<string>): Promise<void> {
-    const filename = args.shift();
-    let algorithm = args.shift();
-
-    if (!filename) {
-      console.error("Missing filename");
-      process.exit(errorExitCode);
-    } else if (!algorithm) {
-      algorithm = defaultAlgorithm;
-      console.info(
-        `No algorithm provided, falling back to default: ${algorithm}`
-      );
-    }
-
-    await processFileHash(filename, algorithm);
+    await cmd.parseAsync(args);
   },
+  cmd,
 };
 
 export { file };
