@@ -1,7 +1,9 @@
+import { algorithmOption, fileArgument } from "../helper/command";
 import { appendFile, copyFile, readFile } from "fs/promises";
-import { defaultAlgorithm, errorExitCode } from "../config";
 
 import { Command } from "../interfaces/Command";
+import { Command as Commander } from "commander";
+import { errorExitCode } from "../config";
 import { fileExists } from "../helper/fileExists";
 import { getFileDigest } from "../helper/digest";
 import { resolve } from "path";
@@ -50,27 +52,26 @@ async function appendFileHash(
   }
 }
 
+const name = "append";
+const cmd = new Commander(name);
+
+cmd.addOption(algorithmOption);
+
+cmd.addArgument(fileArgument);
+
+cmd.action(async (file, { algorithm }) => {
+  await appendFileHash(file, algorithm);
+});
+
 const append: Command = {
-  name: "append",
+  name,
   get usage(): string {
-    return "<filename> [algorithm]";
+    return cmd.usage();
   },
   async execute(args: Array<string>): Promise<void> {
-    const filename = args.shift();
-    let algorithm = args.shift();
-
-    if (!filename) {
-      console.error("Missing file path");
-      process.exit(errorExitCode);
-    } else if (!algorithm) {
-      algorithm = defaultAlgorithm;
-      console.info(
-        `No algorithm provided, falling back to default: ${algorithm}`
-      );
-    }
-
-    await appendFileHash(filename, algorithm);
+    await cmd.parseAsync(args);
   },
+  cmd,
 };
 
 export { append };
