@@ -29,13 +29,6 @@ function showHelp() {
     process.exit(errorExitCode);
   }
 
-  if (!command.cmd) {
-    // eslint-disable-next-line no-magic-numbers
-    await command.execute(process.argv.splice(2));
-
-    process.exit();
-  }
-
   const { cmd } = command;
 
   cmd.showHelpAfterError();

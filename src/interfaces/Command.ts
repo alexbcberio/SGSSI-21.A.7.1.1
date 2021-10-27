@@ -4,7 +4,7 @@ interface Command {
   name: string;
   get usage(): string;
   execute(args: Array<string>): Promise<void>;
-  cmd?: Commander;
+  cmd: Commander;
 }
 
 export { Command };
