@@ -1,6 +1,7 @@
-import { defaultAlgorithm, errorExitCode } from "../config";
-
 import { Command } from "../interfaces/Command";
+import { Command as Commander } from "commander";
+import { algorithmOption } from "../helper/command";
+import { errorExitCode } from "../config";
 import { fileExists } from "../helper/fileExists";
 import { getFileDigest } from "../helper/digest";
 import { readFile } from "fs/promises";
@@ -74,31 +75,27 @@ async function validateBlock(
   }
 }
 
+const name = "validate";
+const cmd = new Commander(name);
+
+cmd.addOption(algorithmOption);
+
+cmd.argument("<origin block>", "Block prior to mine");
+cmd.argument("<mined block>", "Mined block");
+
+cmd.action(async (origin, mined, { algorithm }) => {
+  await validateBlock(origin, mined, algorithm);
+});
+
 const validate: Command = {
-  name: "validate",
+  name,
   get usage(): string {
-    return "<origin filename> <mined filename> [algorithm]";
+    return cmd.usage();
   },
   async execute(args: Array<string>): Promise<void> {
-    const originFilename = args.shift();
-    const minedFilename = args.shift();
-    let algorithm = args.shift();
-
-    if (!originFilename) {
-      console.error("Missing origin filename");
-      process.exit(errorExitCode);
-    } else if (!minedFilename) {
-      console.error("Missing mined filename");
-      process.exit(errorExitCode);
-    } else if (!algorithm) {
-      algorithm = defaultAlgorithm;
-      console.info(
-        `No algorithm provided, falling back to default: ${algorithm}`
-      );
-    }
-
-    await validateBlock(originFilename, minedFilename, algorithm);
+    await cmd.parseAsync(args);
   },
+  cmd,
 };
 
 export { validate };
