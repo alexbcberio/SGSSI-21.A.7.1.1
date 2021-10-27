@@ -1,8 +1,10 @@
+import { algorithmOption, fileArgument } from "../helper/command";
 import { appendFile, copyFile, readFile } from "fs/promises";
-import { defaultAlgorithm, errorExitCode } from "../config";
 
 import { Command } from "../interfaces/Command";
+import { Command as Commander } from "commander";
 import { Progress } from "../helper/Progress";
+import { errorExitCode } from "../config";
 import { fileExists } from "../helper/fileExists";
 import { getTextDigest } from "../helper/digest";
 import { resolve } from "path";
@@ -31,6 +33,7 @@ async function mineFile(filePath: string, algorithm: string): Promise<void> {
   let optimalDigest = "a";
   let optimalString;
 
+  console.log();
   const progress = new Progress("Mining file");
   progress.start();
 
@@ -57,8 +60,12 @@ async function mineFile(filePath: string, algorithm: string): Promise<void> {
     progress.update();
   } while (Date.now() - startTimestamp <= maxMs && hexNum < maxHexNumValue);
 
+  // eslint-disable-next-line no-magic-numbers
+  const secondsTaken = (Date.now() - startTimestamp) / 1000;
+
+  console.log(`\nFinished mining after ${secondsTaken}s`);
   console.log(`  Hex string: ${optimalString}`);
-  console.log(`  Digest: ${optimalDigest}\n`);
+  console.log(`  Digest (${algorithm}): ${optimalDigest}\n`);
 
   const copyPath = `${filePath}.${algorithm}.mined`;
   await copyFile(filePath, copyPath);
@@ -85,27 +92,26 @@ async function mineBlock(filename: string, algorithm: string): Promise<void> {
   }
 }
 
+const name = "mine";
+const cmd = new Commander(name);
+
+cmd.addOption(algorithmOption);
+
+cmd.addArgument(fileArgument);
+
+cmd.action(async (file, { algorithm }) => {
+  await mineBlock(file, algorithm);
+});
+
 const mine: Command = {
-  name: "mine",
+  name,
   get usage(): string {
-    return "<filename> [algorithm]";
+    return cmd.usage();
   },
   async execute(args: Array<string>): Promise<void> {
-    const filename = args.shift();
-    let algorithm = args.shift();
-
-    if (!filename) {
-      console.error("Missing filename");
-      process.exit(errorExitCode);
-    } else if (!algorithm) {
-      algorithm = defaultAlgorithm;
-      console.info(
-        `No algorithm provided, falling back to default: ${algorithm}`
-      );
-    }
-
-    await mineBlock(filename, algorithm);
+    await cmd.parseAsync(args);
   },
+  cmd,
 };
 
 export { mine };
