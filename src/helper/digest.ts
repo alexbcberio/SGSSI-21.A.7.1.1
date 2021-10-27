@@ -17,6 +17,7 @@ async function getFileDigest(
 
     try {
       hash = createHash(algorithm);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       console.log(e.message);
       process.exit(errorExitCode);
@@ -40,6 +41,7 @@ function getTextDigest(text: string, algorithm: string): string {
 
   try {
     hash = createHash(algorithm);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     console.log(e.message);
     process.exit(errorExitCode);

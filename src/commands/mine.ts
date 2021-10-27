@@ -96,6 +96,7 @@ const name = "mine";
 const cmd = new Commander(name);
 cmd.description(
   `Mines the given file for ${
+    // eslint-disable-next-line no-magic-numbers
     maxMs / 1e3
   } seconds, searching a hash that starts with as many zeroes as possible`
 );

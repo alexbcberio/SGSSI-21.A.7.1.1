@@ -28,6 +28,7 @@ class Progress {
     }
 
     process.stdout.cursorTo(this._text.length + this._numSymbols);
+    // eslint-disable-next-line no-magic-numbers
     process.stdout.clearLine(1);
     process.stdout.write(this._symbol);
 
