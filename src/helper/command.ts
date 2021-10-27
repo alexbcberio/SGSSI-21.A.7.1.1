@@ -1,4 +1,5 @@
-import { Option } from "commander";
+import { Argument, Option } from "commander";
+
 import { defaultAlgorithm } from "../config";
 
 const algorithmOption = new Option(
@@ -7,4 +8,6 @@ const algorithmOption = new Option(
 );
 algorithmOption.default(defaultAlgorithm);
 
-export { algorithmOption };
+const fileArgument = new Argument("<file>", "Relative path to the file");
+
+export { algorithmOption, fileArgument };
