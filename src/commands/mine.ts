@@ -94,6 +94,11 @@ async function mineBlock(filename: string, algorithm: string): Promise<void> {
 
 const name = "mine";
 const cmd = new Commander(name);
+cmd.description(
+  `Mines the given file for ${
+    maxMs / 1e3
+  } seconds, searching a hash that starts with as many zeroes as possible`
+);
 
 cmd.addOption(algorithmOption);
 

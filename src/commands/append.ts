@@ -54,6 +54,9 @@ async function appendFileHash(
 
 const name = "append";
 const cmd = new Commander(name);
+cmd.description(
+  "Creates a copy of a file with its hash appended at the last line"
+);
 
 cmd.addOption(algorithmOption);
 

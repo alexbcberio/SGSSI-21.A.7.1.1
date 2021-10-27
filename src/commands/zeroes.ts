@@ -9,6 +9,10 @@ import { fileExists } from "../helper/fileExists";
 import { getTextDigest } from "../helper/digest";
 import { resolve } from "path";
 
+const minNumZeroes = 1;
+const maxHexChars = 8;
+const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
+
 async function withZeroes(
   filePath: string,
   algorithm: string,
@@ -18,13 +22,9 @@ async function withZeroes(
     throw `File ${filePath} does not exist`;
   }
 
-  const minNumZeroes = 1;
   if (numZeroes < minNumZeroes) {
     throw `Num zeroes must be at least ${minNumZeroes}`;
   }
-
-  const maxHexChars = 8;
-  const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
 
   const content = (await readFile(filePath)).toString();
 
@@ -105,6 +105,10 @@ async function zeroesBlock(
 
 const name = "zeroes";
 const cmd = new Commander(name);
+cmd.description(
+  `Searches for a ${maxHexChars} hex value where if appended to the file it` +
+    ` creates a digest that starts with the provided number of zeroes`
+);
 
 cmd.addOption(algorithmOption);
 

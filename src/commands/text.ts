@@ -11,6 +11,7 @@ function processText(text: string, algorithm: string): void {
 
 const name = "text";
 const cmd = new Commander(name);
+cmd.description("Calculate the digest of a text");
 
 cmd.addOption(algorithmOption);
 

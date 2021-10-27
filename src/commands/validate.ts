@@ -77,6 +77,7 @@ async function validateBlock(
 
 const name = "validate";
 const cmd = new Commander(name);
+cmd.description("Validates a block following the rules of the course");
 
 cmd.addOption(algorithmOption);
 

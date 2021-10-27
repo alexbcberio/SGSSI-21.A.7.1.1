@@ -23,6 +23,7 @@ async function processFileHash(
 
 const name = "file";
 const cmd = new Commander(name);
+cmd.description("Calculate the digest of a file");
 
 cmd.addOption(algorithmOption);
 
