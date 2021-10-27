@@ -28,8 +28,8 @@ cmd.addOption(algorithmOption);
 
 cmd.addArgument(fileArgument);
 
-cmd.action(async (filename, { a }) => {
-  await processFileHash(filename, a);
+cmd.action(async (filename, { algorithm }) => {
+  await processFileHash(filename, algorithm);
 });
 
 const file: Command = {
