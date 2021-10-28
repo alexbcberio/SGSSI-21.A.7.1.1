@@ -35,6 +35,11 @@ class Progress {
     this._numSymbols = ++this._numSymbols % this._maxSymbols;
     this._lastUpdate = Date.now();
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public terminate(): void {
+    process.stdout.write("\n");
+  }
 }
 
 export { Progress };
