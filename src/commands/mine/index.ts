@@ -2,6 +2,7 @@ import { DigestString, MineOptions, WorkerMessage } from "./mine.interfaces";
 import { Worker, isMainThread, parentPort, workerData } from "worker_threads";
 import { algorithmOption, fileArgument } from "../../helper/command";
 import { appendFile, copyFile, readFile } from "fs/promises";
+import { endNewLine, maxMs } from "./mine.config";
 
 import { Command } from "../../interfaces/Command";
 import { Command as Commander } from "commander";
@@ -9,22 +10,14 @@ import { Progress } from "../../helper/Progress";
 import { cpus } from "os";
 import { errorExitCode } from "../../config";
 import { fileExists } from "../../helper/fileExists";
-import { getTextDigest } from "../../helper/digest";
+import { mineLoop } from "./mine.worker";
 import { resolve } from "path";
 
 const signature = " G040612";
-const maxMs = 60e3;
-const maxHexChars = 8;
-const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
-const defaultStartHexNumber = 0;
-const defaultIncrementValue = 1;
-const endNewLine = "\n";
+const workerResults: Array<DigestString> = [];
 
 let progressInterval: NodeJS.Timer;
-
-let filePath: string;
-let algorithm: string;
-
+let activeWorkers = 0;
 let progress: Progress;
 
 async function getFileContent(filePath: string): Promise<string> {
@@ -51,12 +44,12 @@ function workerMessage(message: WorkerMessage) {
   workerResults[numWorker] = data;
 }
 
-async function workerExit(code: number) {
+function workerExit(code: number): Promise<DigestString | void> {
   activeWorkers--;
 
   // eslint-disable-next-line no-magic-numbers
   if (code !== 0) {
-    console.log(`Worker exited with code: ${code}`);
+    console.error(`Worker exited with code: ${code}`);
   }
 
   // eslint-disable-next-line no-magic-numbers
@@ -73,20 +66,19 @@ async function workerExit(code: number) {
     const optimal = workerResults.shift();
 
     if (!optimal) {
-      console.error("Workers have not returned any digest");
-      process.exit(errorExitCode);
+      throw "Workers have not returned any digest";
     }
 
-    console.log("Finished mining");
-    console.log(`  Optimal digest: ${optimal.digest}`);
-    console.log(`  Optimal string: ${optimal.string}`);
-
-    // eslint-disable-next-line no-use-before-define
-    await createMinedBlock(filePath, optimal?.string, algorithm);
+    return Promise.resolve(optimal);
   }
+
+  return Promise.resolve();
 }
 
-function mineContent(content: string, options: MineOptions): void {
+function mineContent(
+  content: string,
+  options: MineOptions
+): Promise<DigestString> {
   const signature = options.signature || "";
   const algorithm = options.algorithm;
 
@@ -105,27 +97,35 @@ function mineContent(content: string, options: MineOptions): void {
   // eslint-disable-next-line no-magic-numbers
   progressInterval = setInterval(() => progress.update(), 5e2);
 
-  for (let numWorker = 0; numWorker < numCpus; numWorker++) {
-    const options: MineOptions = {
-      algorithm,
-      incrementNumber: numCpus,
-      signature,
-      startNumber: numWorker,
-    };
+  return new Promise((res) => {
+    for (let numWorker = 0; numWorker < numCpus; numWorker++) {
+      const options: MineOptions = {
+        algorithm,
+        incrementNumber: numCpus,
+        signature,
+        startNumber: numWorker,
+      };
 
-    const worker = new Worker(__filename, {
-      workerData: {
-        numWorker,
-        content,
-        options,
-      },
-    });
+      const worker = new Worker(__filename, {
+        workerData: {
+          numWorker,
+          content,
+          options,
+        },
+      });
 
-    worker.addListener("error", workerError);
-    worker.addListener("online", workerOnline);
-    worker.addListener("message", workerMessage);
-    worker.addListener("exit", workerExit);
-  }
+      worker.addListener("error", workerError);
+      worker.addListener("online", workerOnline);
+      worker.addListener("message", workerMessage);
+      worker.addListener("exit", async (code: number) => {
+        const optimal = await workerExit(code);
+
+        if (optimal) {
+          res(optimal);
+        }
+      });
+    }
+  });
 }
 
 async function createMinedBlock(
@@ -142,65 +142,25 @@ async function createMinedBlock(
 }
 
 async function mineBlock(filename: string, algorithm: string): Promise<void> {
-  filePath = resolve(process.cwd(), filename);
+  const filePath = resolve(process.cwd(), filename);
 
   try {
     const content = await getFileContent(filePath);
 
-    mineContent(content, {
+    const { digest, string } = await mineContent(content, {
       algorithm,
       signature,
     });
+
+    console.log("Finished mining");
+    console.log(`  Optimal digest: ${digest}`);
+    console.log(`  Optimal string: ${string}`);
+
+    await createMinedBlock(filePath, string, algorithm);
   } catch (e) {
     console.error(e);
     process.exit(errorExitCode);
   }
-}
-
-async function mineLoop(
-  content: string,
-  options: MineOptions
-): Promise<DigestString> {
-  const { algorithm, startNumber } = options;
-
-  const signature = options.signature || "";
-  const incrementNumber = options.incrementNumber || defaultIncrementValue;
-  let hexNum = startNumber || defaultStartHexNumber;
-  let currentDigest: string;
-
-  const optimal: DigestString = {
-    digest: "",
-    string: "",
-  };
-
-  const startTimestamp = Date.now();
-  do {
-    // eslint-disable-next-line no-magic-numbers
-    let hexNumString = hexNum.toString(16).toLowerCase();
-
-    hexNum += incrementNumber;
-
-    if (hexNumString.length < maxHexChars) {
-      hexNumString =
-        "0".repeat(maxHexChars - hexNumString.length) + hexNumString;
-    }
-    hexNumString += signature;
-
-    const contentWithHex = content + hexNumString;
-
-    currentDigest = await getTextDigest(contentWithHex, algorithm);
-
-    if (!optimal.string || currentDigest < optimal.digest) {
-      optimal.digest = currentDigest;
-      optimal.string = hexNumString;
-    }
-  } while (Date.now() - startTimestamp <= maxMs && hexNum < maxHexNumValue);
-
-  if (hexNum >= maxHexNumValue) {
-    console.log("Worker overflowed");
-  }
-
-  return optimal;
 }
 
 if (!isMainThread) {
@@ -230,9 +190,7 @@ cmd.addOption(algorithmOption);
 
 cmd.addArgument(fileArgument);
 
-cmd.action(async (file, options) => {
-  algorithm = options.algorithm;
-
+cmd.action(async (file, { algorithm }) => {
   await mineBlock(file, algorithm);
 });
 
