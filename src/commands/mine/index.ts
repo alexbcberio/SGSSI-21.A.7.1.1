@@ -2,7 +2,7 @@ import { DigestString, MineOptions, WorkerMessage } from "./mine.interfaces";
 import { Worker, isMainThread, parentPort, workerData } from "worker_threads";
 import { algorithmOption, fileArgument } from "../../helper/command";
 import { appendFile, copyFile, readFile } from "fs/promises";
-import { endNewLine, maxMs } from "./mine.config";
+import { defaultSeconds, endNewLine } from "./mine.config";
 
 import { Command } from "../../interfaces/Command";
 import { Command as Commander } from "commander";
@@ -13,7 +13,6 @@ import { fileExists } from "../../helper/fileExists";
 import { mineLoop } from "./mine.worker";
 import { resolve } from "path";
 
-const signature = " G040612";
 const workerResults: Array<DigestString> = [];
 
 let progressInterval: NodeJS.Timer;
@@ -79,9 +78,6 @@ function mineContent(
   content: string,
   options: MineOptions
 ): Promise<DigestString> {
-  const signature = options.signature || "";
-  const algorithm = options.algorithm;
-
   const hasEndNewLine = content.endsWith(endNewLine);
 
   if (!hasEndNewLine) {
@@ -99,12 +95,8 @@ function mineContent(
 
   return new Promise((res) => {
     for (let numWorker = 0; numWorker < numCpus; numWorker++) {
-      const options: MineOptions = {
-        algorithm,
-        incrementNumber: numCpus,
-        signature,
-        startNumber: numWorker,
-      };
+      options.startNumber = numWorker;
+      options.incrementNumber = numCpus;
 
       const worker = new Worker(__filename, {
         workerData: {
@@ -141,7 +133,12 @@ async function createMinedBlock(
   console.log(`Created file with appended hex code at ${copyPath}`);
 }
 
-async function mineBlock(filename: string, algorithm: string): Promise<void> {
+async function mineBlock(
+  filename: string,
+  algorithm: string,
+  seconds: number,
+  signature: string
+): Promise<void> {
   const filePath = resolve(process.cwd(), filename);
 
   try {
@@ -150,6 +147,7 @@ async function mineBlock(filename: string, algorithm: string): Promise<void> {
     const { digest, string } = await mineContent(content, {
       algorithm,
       signature,
+      seconds,
     });
 
     console.log("Finished mining");
@@ -180,18 +178,36 @@ if (!isMainThread) {
 const name = "mine";
 const cmd = new Commander(name);
 cmd.description(
-  `Mines the given file for ${
-    // eslint-disable-next-line no-magic-numbers
-    maxMs / 1e3
-  } seconds, searching a hash that starts with as many zeroes as possible`
+  `Mines the given file for ${defaultSeconds} seconds, searching a hash that starts with as many zeroes as possible`
 );
 
 cmd.addOption(algorithmOption);
+cmd.option(
+  "-s --signature <signature>",
+  "Signature to append after the code",
+  ""
+);
+cmd.option(
+  "-t --time <seconds>",
+  "Time in seconds spent searching a digest",
+  defaultSeconds.toString()
+);
 
 cmd.addArgument(fileArgument);
 
-cmd.action(async (file, { algorithm }) => {
-  await mineBlock(file, algorithm);
+cmd.action(async (file, { algorithm, signature, time }) => {
+  if (signature) {
+    signature = ` ${signature}`;
+  }
+
+  time = parseInt(time);
+
+  if (isNaN(time)) {
+    console.error("Error: Time must be a number");
+    process.exit(errorExitCode);
+  }
+
+  await mineBlock(file, algorithm, time, signature);
 });
 
 const mine: Command = {

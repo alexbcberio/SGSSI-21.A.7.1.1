@@ -10,6 +10,7 @@ interface WorkerMessage {
 
 interface MineOptions {
   algorithm: string;
+  seconds: number;
   signature?: string;
   startNumber?: number;
   incrementNumber?: number;

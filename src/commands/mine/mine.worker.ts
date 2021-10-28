@@ -4,7 +4,6 @@ import {
   defaultStartHexNumber,
   maxHexChars,
   maxHexNumValue,
-  maxMs,
 } from "./mine.config";
 
 import { getTextDigest } from "../../helper/digest";
@@ -17,6 +16,9 @@ async function mineLoop(
 
   const signature = options.signature || "";
   const incrementNumber = options.incrementNumber || defaultIncrementValue;
+  // eslint-disable-next-line no-magic-numbers
+  const maxMs = options.seconds * 1e3;
+
   let hexNum = startNumber || defaultStartHexNumber;
   let currentDigest: string;
 
