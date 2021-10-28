@@ -1,14 +1,14 @@
 import { Worker, isMainThread, parentPort, workerData } from "worker_threads";
-import { algorithmOption, fileArgument } from "../helper/command";
+import { algorithmOption, fileArgument } from "../../helper/command";
 import { appendFile, copyFile, readFile } from "fs/promises";
 
-import { Command } from "../interfaces/Command";
+import { Command } from "../../interfaces/Command";
 import { Command as Commander } from "commander";
-import { Progress } from "../helper/Progress";
+import { Progress } from "../../helper/Progress";
 import { cpus } from "os";
-import { errorExitCode } from "../config";
-import { fileExists } from "../helper/fileExists";
-import { getTextDigest } from "../helper/digest";
+import { errorExitCode } from "../../config";
+import { fileExists } from "../../helper/fileExists";
+import { getTextDigest } from "../../helper/digest";
 import { resolve } from "path";
 
 const signature = " G040612";
