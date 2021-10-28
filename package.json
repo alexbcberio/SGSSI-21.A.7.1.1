@@ -15,8 +15,8 @@
   },
   "scripts": {
     "start": "ts-node src/main.ts",
-    "build": "tsc",
-    "watch": "tsc -w",
+    "build": "rimraf dist && tsc",
+    "watch": "rimraf dist && tsc -w",
     "lint": "eslint src",
     "lint-fix": "eslint src --fix",
     "package": "tsc && node package.mjs"
