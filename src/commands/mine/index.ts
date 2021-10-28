@@ -1,3 +1,4 @@
+import { DigestString, MineOptions, WorkerMessage } from "./mine.interfaces";
 import { Worker, isMainThread, parentPort, workerData } from "worker_threads";
 import { algorithmOption, fileArgument } from "../../helper/command";
 import { appendFile, copyFile, readFile } from "fs/promises";
@@ -35,26 +36,6 @@ async function getFileContent(filePath: string): Promise<string> {
 
   return buffer.toString();
 }
-
-interface DigestString {
-  digest: string;
-  string: string;
-}
-
-interface WorkerMessage {
-  numWorker: number;
-  data: DigestString;
-}
-
-interface MineOptions {
-  algorithm: string;
-  signature?: string;
-  startNumber?: number;
-  incrementNumber?: number;
-}
-
-let activeWorkers = 0;
-const workerResults: Array<DigestString> = [];
 
 function workerError(error: Error) {
   console.error(`Error on worker: ${error.name}\n${error.message}`);
