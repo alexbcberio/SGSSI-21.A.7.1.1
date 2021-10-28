@@ -192,6 +192,10 @@ cmd.option(
   "Time in seconds spent searching a digest",
   defaultSeconds.toString()
 );
+cmd.option(
+  "--no-time",
+  "Disables time limit, waits until overflow or 10 years"
+);
 
 cmd.addArgument(fileArgument);
 
@@ -200,7 +204,13 @@ cmd.action(async (file, { algorithm, signature, time }) => {
     signature = ` ${signature}`;
   }
 
-  time = parseInt(time);
+  if (time === false) {
+    // eslint-disable-next-line no-magic-numbers
+    time = 10 * 365.25 * 24 * 60 * 60;
+    console.log("\nWarning: running with no time limit.");
+  } else {
+    time = parseInt(time);
+  }
 
   if (isNaN(time)) {
     console.error("Error: Time must be a number");
