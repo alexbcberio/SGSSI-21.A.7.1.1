@@ -12,26 +12,45 @@ import { resolve } from "path";
 const maxMs = 60e3;
 const maxHexChars = 8;
 const maxHexNumValue = parseInt("f".repeat(maxHexChars), 16);
+const defaultStartHexNumber = 0;
+const defaultIncrementValue = 1;
+const endNewLine = "\n";
 
-async function mineFile(filePath: string, algorithm: string): Promise<void> {
+interface MineContentOptions {
+  signature?: string;
+  startHexNumber?: number;
+  incrementValue?: number;
+}
+
+async function getFileContent(filePath: string): Promise<string> {
   if (!(await fileExists(filePath))) {
     throw `File ${filePath} does not exist`;
   }
 
-  const content = (await readFile(filePath)).toString();
-  const hasEndNewLine = content.endsWith("\n") || content.endsWith("\r\n");
+  const buffer = await readFile(filePath);
 
-  let appendNewLine = "";
+  return buffer.toString();
+}
+
+async function mineContent(
+  content: string,
+  algorithm: string,
+  options?: MineContentOptions
+): Promise<string> {
+  const signature = options?.signature || "";
+  let hexNum = options?.startHexNumber || defaultStartHexNumber;
+  const incrementNum = options?.incrementValue || defaultIncrementValue;
+
+  const hasEndNewLine = content.endsWith(endNewLine);
+
   if (!hasEndNewLine) {
-    appendNewLine = "\n";
+    content += endNewLine;
   }
 
-  let hexNum = 0;
-  let hexNumString;
   let currentDigest;
 
-  let optimalDigest = "a";
-  let optimalString;
+  let optimalDigest = "";
+  let optimalString = "";
 
   console.log();
   const progress = new Progress("Mining file");
@@ -40,19 +59,21 @@ async function mineFile(filePath: string, algorithm: string): Promise<void> {
   const startTimestamp = Date.now();
   do {
     // eslint-disable-next-line no-magic-numbers
-    hexNumString = (hexNum++).toString(16).toLowerCase();
+    let hexNumString = hexNum.toString(16).toLowerCase();
+
+    hexNum += incrementNum;
 
     if (hexNumString.length < maxHexChars) {
       hexNumString =
         "0".repeat(maxHexChars - hexNumString.length) + hexNumString;
     }
-    hexNumString += " G040612";
+    hexNumString += signature;
 
-    const contentWithHex = content + appendNewLine + hexNumString;
+    const contentWithHex = content + hexNumString;
 
     currentDigest = await getTextDigest(contentWithHex, algorithm);
 
-    if (currentDigest <= optimalDigest) {
+    if (!optimalString || currentDigest < optimalDigest) {
       optimalDigest = currentDigest;
       optimalString = hexNumString;
     }
@@ -63,20 +84,26 @@ async function mineFile(filePath: string, algorithm: string): Promise<void> {
   // eslint-disable-next-line no-magic-numbers
   const secondsTaken = (Date.now() - startTimestamp) / 1000;
 
-  console.log(`\nFinished mining after ${secondsTaken}s`);
+  if (!hasEndNewLine) {
+    optimalString = endNewLine + optimalString;
+  }
+
+  console.log(`\n\nFinished mining after ${secondsTaken}s`);
   console.log(`  Hex string: ${optimalString}`);
   console.log(`  Digest (${algorithm}): ${optimalDigest}\n`);
 
+  return optimalString;
+}
+
+async function createMinedBlock(
+  filePath: string,
+  signature: string,
+  algorithm: string
+) {
   const copyPath = `${filePath}.${algorithm}.mined`;
+
   await copyFile(filePath, copyPath);
-
-  let appendHexNumString = "";
-  if (!hasEndNewLine) {
-    appendHexNumString = "\n";
-  }
-
-  appendHexNumString += optimalString;
-  await appendFile(copyPath, appendHexNumString);
+  await appendFile(copyPath, signature);
 
   console.log(`Created file with appended hex code at ${copyPath}`);
 }
@@ -85,7 +112,11 @@ async function mineBlock(filename: string, algorithm: string): Promise<void> {
   const filePath = resolve(process.cwd(), filename);
 
   try {
-    await mineFile(filePath, algorithm);
+    const content = await getFileContent(filePath);
+    const signature = await mineContent(content, algorithm, {
+      signature: " G040612",
+    });
+    await createMinedBlock(filePath, signature, algorithm);
   } catch (e) {
     console.error(e);
     process.exit(errorExitCode);
