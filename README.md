@@ -1,6 +1,8 @@
-# SGSSI-21 A.7.1.1
+# sgssi-crypto
 
 Activity for SGSSI university course.
+
+Note: this repository was previously known as "SGSSI-21.A.7.1.1"
 
 ## Description of the tool
 
@@ -22,14 +24,14 @@ that creates a digest with a predefined number of zeroes.
 
 ## Usage
 
-Precompiled packages are available on the [releases page](https://github.com/alexbcberio/sgssi-crypto/releases)
+Binary packages are available on the [releases page](https://github.com/alexbcberio/sgssi-crypto/releases)
 of the repository.
 
 ## Running and packaging
 
-**Note:** In order to get the maximum performance precompiled packages should be used as
-they are compiled with byte code and they will perform much better than running
-from the source code.
+**Note:** In order to get the maximum performance binary packages should be used
+as they are compiled with byte code and they will perform much better than
+running from the source code.
 
 ---
 
