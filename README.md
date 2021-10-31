@@ -22,7 +22,7 @@ that creates a digest with a predefined number of zeroes.
 
 ## Usage
 
-Precompiled packages are available on the [releases page](https://github.com/alexbcberio/SGSSI-21.A.7.1.1/releases)
+Precompiled packages are available on the [releases page](https://github.com/alexbcberio/sgssi-crypto/releases)
 of the repository.
 
 ## Running and packaging
