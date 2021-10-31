@@ -1,3 +1,5 @@
+import { getDownloadUrl, isLatestRelease } from "./helper/update";
+
 import { commands } from "./commands";
 import { errorExitCode } from "./config";
 import { getHashes } from "crypto";
@@ -19,7 +21,25 @@ function showHelp() {
   console.log(`\nSupported hash algorithms:\n${availableHashes}`);
 }
 
+async function checkUpdates() {
+  if (!(await isLatestRelease())) {
+    const newReleaseMsg = "\nNew release available";
+
+    try {
+      const url = await getDownloadUrl();
+
+      console.log(`${newReleaseMsg}, direct download link:\n  ${url}`);
+    } catch (e) {
+      // Cannot get download url, unsupported platform
+      console.log(`${newReleaseMsg}, download url could not be retrieved`);
+    }
+  }
+}
+
 (async function () {
+  // Do not await it, else seems app is not responsive
+  checkUpdates();
+
   // eslint-disable-next-line no-magic-numbers
   const commandName = process.argv.splice(2, 1).shift();
   const command = commands.find((c) => c.name === commandName);
