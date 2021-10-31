@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { readFile, readdir, rename } from "fs/promises";
+import { readdir, rename } from "fs/promises";
 
 import { exec } from "pkg";
 import newGithubreleaseUrl from "new-github-release-url";
@@ -12,6 +12,10 @@ const mainJsFile = "./dist/main.js";
 const binDir = resolve("bin");
 const binName = "sgssi-crypto";
 
+const compressionAlgorithm = "br";
+const noCompressFlag = "--no-compress";
+const noOpenReleasePageFlag = "--no-open-release";
+
 function prePackage() {
   return new Promise((res) => {
     rimraf(binDir, res);
@@ -19,11 +23,30 @@ function prePackage() {
 }
 
 async function pkg() {
-  await exec([mainJsFile, "-c", "package.json", "-C", "br"]);
+  const args = [mainJsFile, "-c", "package.json"];
+
+  if (!process.argv.includes(noCompressFlag)) {
+    console.log(
+      `Building binaries compressed with ${compressionAlgorithm}, use ${noCompressFlag} flag to skip compression`
+    );
+    args.push.apply(args, ["-C", compressionAlgorithm]);
+  }
+
+  await exec(args);
 }
 
 async function postPackage() {
-  const { version, repository } = JSON.parse(await readFile("package.json"));
+  const version = process.env.npm_package_version;
+  const repositoryUrl = process.env.npm_package_repository_url;
+
+  if (!version || !repositoryUrl) {
+    console.error(
+      "No npm_package_version nor npm_package_repository_url variables are set. Is the script being run with npm or yarn?"
+    );
+    // eslint-disable-next-line no-magic-numbers
+    process.exit(1);
+  }
+
   const currentNames = await readdir(binDir);
   const newNames = currentNames.map(
     (n) => `${binName}-v${version}-${n.split("-").pop()}`
@@ -38,12 +61,20 @@ async function postPackage() {
   }
 
   const url = newGithubreleaseUrl({
-    repoUrl: repository.url,
+    repoUrl: repositoryUrl,
     tag: `v${version}`,
     title: `Version v${version}`,
   });
 
-  await Promise.all([open(url), ...renamePromises]);
+  let openReleasePagePromise = Promise.resolve();
+  if (!process.argv.includes(noOpenReleasePageFlag)) {
+    console.log(
+      `Opening new Github release url, set ${noOpenReleasePageFlag} flag to prevent it`
+    );
+    openReleasePagePromise = open(url);
+  }
+
+  await Promise.all([openReleasePagePromise, ...renamePromises]);
 }
 
 async function main() {
