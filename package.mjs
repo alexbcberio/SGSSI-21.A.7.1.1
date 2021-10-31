@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import { readdir, rename } from "fs/promises";
 
+import { currentVersion } from "./dist/config.js";
 import { exec } from "pkg";
 import newGithubreleaseUrl from "new-github-release-url";
 import open from "open";
@@ -78,6 +78,15 @@ async function postPackage() {
 }
 
 async function main() {
+  const npmPackageVersion = process.env.npm_package_version;
+
+  if (currentVersion !== npmPackageVersion) {
+    console.error(
+      `Version mismatch, package.json (${npmPackageVersion}) and version set on config (${currentVersion}) are not the same`
+    );
+    process.exit(1);
+  }
+
   await prePackage();
   await pkg();
   await postPackage();
