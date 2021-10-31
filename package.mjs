@@ -42,8 +42,8 @@ async function postPackage() {
     tag: `v${version}`,
     title: `Version v${version}`,
   });
-  await open(url);
-  await Promise.all(renamePromises);
+
+  await Promise.all([open(url), ...renamePromises]);
 }
 
 async function main() {
